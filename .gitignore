@@ -1,0 +1,14 @@
+# Секреты и локальные настройки
+.clasprc.json
+.env
+*.token
+
+# Финансовые данные и выгрузки — не хранятся в репозитории
+report_data_*.json
+*.xlsx
+*.csv
+
+# Системное
+.DS_Store
+node_modules/
+__pycache__/
