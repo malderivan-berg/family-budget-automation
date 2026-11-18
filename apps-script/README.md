@@ -24,4 +24,4 @@
 
 Порядок развёртывания — в корневом [README](../README.md). Целевые изменения — в [`docs/TARGET_ARCHITECTURE_v1.0.md`](../docs/TARGET_ARCHITECTURE_v1.0.md), раздел 7.
 
-Не хватает `appsscript.json` (манифест проекта) — будет добавлен из редактора.
+`appsscript.json` — манифест проекта: часовой пояс Europe/Moscow, среда V8, явный список OAuth-областей не задан (Apps Script определяет их автоматически).
