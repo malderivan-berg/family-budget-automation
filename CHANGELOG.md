@@ -9,6 +9,10 @@
 - `apps-script/` — исходный код v0.9 (15 модулей, снимок 06.09.2026).
 - `docs/VOICE_TRANSACTION_BATCH_SCHEMA_v2.0.md`, `docs/STAGE3_SPECIFICATION_v0.2.md` — действующие спецификации.
 - `docs/archive/` — LLM Analysis Contract v1.0 (draft), Report Model Specification v1.0 (draft), AI Report Schema v1.2 (legacy).
+- `agent/` — агент отчёта: инструкция 1.0, карта показателей v1.1, шаблон, скрипты сборки (`render_report.py`), сверки чисел (`check_numbers.py`), проверки вёрстки (`render_check.py`), просмотра данных (`show_data.py`). Пробный прогон на отчёте №9: 155 чисел сверено, расхождений нет.
+
+### Changed
+- `docs/TARGET_ARCHITECTURE_v1.0.md` 0.3: формат `report_data` (raw + display), разделение труда внутри агента, находки в данных v1.1.
 
 ## [0.9] — 2026-09-06 — Stable
 
