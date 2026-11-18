@@ -19,7 +19,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 AGENT_DIR = os.path.dirname(HERE)
-TEMPLATE_VERSION = "1.0"
+TEMPLATE_VERSION = "1.1"
 
 TONES = {"positive", "negative", "neutral"}
 SEVERITIES = {"critical", "high", "medium", "low"}
@@ -299,10 +299,18 @@ def watch_card(M, key, w):
             + "".join(body) + f'<p style="margin-top:10px">{rich(w["comment"])}</p></div>')
 
 
+def section_title(text, note=None):
+    """Заголовок раздела (уровень h2) и необязательная пояснительная строка."""
+    out = f'<h2 class="section-title">{esc(text)}</h2>'
+    if note:
+        out += f'<div class="section-note">{esc(note)}</div>'
+    return out
+
+
 def person_section(M, scope, title, p):
     nw = M.get("net_worth", scope)["meta"]
-    parts = [f'<section><div class="eyebrow">{esc(title)}</div>',
-             f'<div class="card"><div class="person-head"><h2>{esc(nw["label"])}</h2>'
+    parts = [f'<section>{section_title(title)}',
+             f'<div class="card"><div class="person-head"><h3>{esc(nw["label"])}</h3>'
              f'<div class="watch-value">{pretty(M.disp("net_worth", scope, "end_value_RUR"), "₽")}</div></div>'
              f'{delta_chip(M, "net_worth", scope)}']
     if p.get("summary"):
@@ -349,23 +357,23 @@ def render(data, analysis, mapping, css, instruction_version):
     out.append(f'<header><div class="eyebrow">Family Office · отчёт №{esc(rid)}</div>'
                f'<h1>Финансовое состояние семьи</h1><span class="chip">{esc(period)}</span></header>')
     # Главное
-    out.append('<section><div class="eyebrow">Главное</div><div class="card">'
+    out.append(f'<section>{section_title("Главное")}<div class="card">'
                + paragraphs(analysis["summary"]) + "</div>")
     ms = analysis.get("main_signal")
     if ms:
         out.append(f'<div class="card accent"><h3>{esc(ms["title"])}</h3>{paragraphs(ms["text"])}</div>')
     out.append("</section>")
     # KPI
-    out.append('<section><div class="eyebrow">Состояние капитала</div>'
-               f'<div class="card hero"><div class="label">Чистый капитал семьи</div>'
+    out.append(f'<section>{section_title("Состояние капитала")}'
+               f'<div class="card hero"><h3>Чистый капитал семьи</h3>'
                f'<div class="value">{pretty(M.disp("net_worth", "family", "end_value_RUR"), "₽")}</div>'
                f'{delta_chip(M, "net_worth", "family")}</div>'
                '<div class="grid" style="margin-top:10px">'
                + "".join(tile(M, k) for k in ("liquid", "deposits", "investments", "net_real_estate"))
                + "</div></section>")
     # Изменения
-    out.append('<section><div class="eyebrow">Динамика</div><h2>Из чего сложилось изменение капитала</h2>'
-               '<div class="card">')
+    out.append(f'<section>{section_title("Динамика капитала")}'
+               '<div class="card"><h3>Из чего сложилось изменение</h3>')
     if analysis.get("changes_comment"):
         out.append(paragraphs(analysis["changes_comment"]))
     out.append(component_bars(M, "family"))
@@ -378,10 +386,11 @@ def render(data, analysis, mapping, css, instruction_version):
     out.append("</div></section>")
     # Зоны внимания
     if watch:
-        out.append('<section><div class="eyebrow">На что обратить внимание</div>'
+        out.append(f'<section>{section_title("На что обратить внимание")}'
                    + "".join(watch_card(M, k, watch[k]) for k in WATCH_KEYS if k in watch) + "</section>")
     # Учтённые операции
-    out.append('<section><div class="eyebrow">Учтённые операции за период</div><div class="card"><div class="rows">'
+    out.append(f'<section>{section_title("Учтённые операции", "Операции, внесённые в календарь за период отчёта")}'
+               '<div class="card"><div class="rows">'
                + flow_row(M, "income", "family", "Доходы семьи") + flow_row(M, "expense", "family", "Расходы семьи")
                + flow_row(M, "income", "husband", "Доходы мужа") + flow_row(M, "expense", "husband", "Расходы мужа")
                + flow_row(M, "income", "wife", "Доходы жены") + flow_row(M, "expense", "wife", "Расходы жены")
@@ -391,12 +400,12 @@ def render(data, analysis, mapping, css, instruction_version):
     out.append(person_section(M, "wife", "Капитал жены", persons.get("wife", {})))
     # Выводы
     if analysis.get("insights"):
-        out.append('<section><div class="eyebrow">Главные выводы</div>'
+        out.append(f'<section>{section_title("Главные выводы")}'
                    + "".join(f'<div class="card {i["tone"]}"><p style="margin:0">{rich(i["text"])}</p></div>'
                              for i in analysis["insights"]) + "</section>")
     # Рекомендации
     if analysis.get("recommendations"):
-        out.append('<section><div class="eyebrow">Рекомендации</div>'
+        out.append(f'<section>{section_title("Рекомендации")}'
                    + "".join(f'<div class="card"><span class="pill {r["priority"]}-p">'
                              f'{PRIORITY_RU[r["priority"]]} приоритет</span>'
                              f'<p style="margin:8px 0 0">{rich(r["text"])}</p></div>'
@@ -404,7 +413,7 @@ def render(data, analysis, mapping, css, instruction_version):
     # Подвал
     out.append(f'<footer>Все суммы — в рублях, из Google Sheets (лист «Расчеты», отчёт №{esc(rid)}). '
                f'Тексты — анализ Claude; каждое число в отчёте сверено с выгрузкой. '
-               f'Шаблон {TEMPLATE_VERSION}, инструкция {esc(instruction_version)}.</footer>')
+               f'Шаблон v{TEMPLATE_VERSION}, инструкция v{esc(instruction_version)}.</footer>')
     out.append("</main></body></html>")
     return "".join(out)
 
