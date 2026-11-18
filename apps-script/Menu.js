@@ -20,6 +20,11 @@ function createMenu_() {
     .addSeparator()
     .addItem('Запустить Pipeline', 'runFullPipeline')
     .addItem('Статус Pipeline', 'showPipelineStatus')
+    .addSeparator()
+    .addItem(REPORT_AGENT.MENU.RUN, 'runReportAgentPipeline')
+    .addItem(REPORT_AGENT.MENU.STATUS, 'showReportAgentStatus')
+    .addItem(REPORT_AGENT.MENU.RETRY, 'retryReportAgent')
+    .addItem(REPORT_AGENT.MENU.SETUP, 'checkReportAgentSetup')
     .addToUi();
 }
 

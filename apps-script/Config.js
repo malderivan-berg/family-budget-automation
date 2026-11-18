@@ -209,6 +209,88 @@ const PIPELINE = {
   STATUS_TIMEOUT: 'timeout'
 };
 
+// -----------------------------------------------------------------------------
+// Report Agent (v1.0) — отчёт строит агент Claude по API-триггеру
+// См. docs/TARGET_ARCHITECTURE_v1.0.md
+// -----------------------------------------------------------------------------
+const REPORT_AGENT = {
+  // true — отчёт доставляется только пользователю ALERT_USER_NAME (пилот)
+  TEST_MODE: true,
+
+  // Через сколько минут после запуска проверять доставку
+  DELIVERY_CHECK_MINUTES: 30,
+
+  // Пользователь из TELEGRAM.USERS, которому приходят предупреждения
+  ALERT_USER_NAME: 'Husband',
+
+  // Контракт выгрузки report_data
+  DATA_SCHEMA_VERSION: '1.0',
+
+  // Имена файлов; {id} заменяется на report_id
+  FILES: {
+    DATA: 'report_data_{id}.json',
+    HTML: 'report_{id}.html',
+    ERROR: 'report_{id}_error.md',
+    TELEGRAM_REQUEST: 'telegram_request_{id}.json',
+    TELEGRAM_RESPONSE: 'telegram_response_{id}.json'
+  },
+
+  // Заголовки вызова /fire (research preview — см. документацию Claude Code)
+  ANTHROPIC_BETA: 'experimental-cc-routine-2026-04-01',
+  ANTHROPIC_VERSION: '2023-06-01',
+  FIRE_URL_PREFIX: 'https://api.anthropic.com/v1/claude_code/routines/',
+
+  // Telegram Bot API — только для предупреждений о сбое
+  TELEGRAM_API_URL: 'https://api.telegram.org/bot',
+
+  // Состояние последнего запуска (Script Properties)
+  STATE_PROPERTY: 'report_agent_state',
+
+  // Публичная функция для отложенной проверки доставки
+  CHECK_HANDLER: 'checkReportDelivered',
+
+  LOCK_TIMEOUT_MS: 10000,
+
+  STATUS: {
+    CREATED: 'created',
+    EXPORTED: 'exported',
+    FIRED: 'fired',
+    FIRE_FAILED: 'fire_failed',
+    DELIVERED: 'delivered',
+    DELIVERY_FAILED: 'delivery_failed',
+    NOT_DELIVERED: 'not_delivered',
+    AGENT_FAILED: 'agent_failed',
+    NO_REPORT: 'no_report'
+  },
+
+  STATUS_TEXT: {
+    created: 'отчёт создан в таблице, выгрузки ещё нет',
+    exported: 'выгрузка создана, агент не запущен',
+    fired: 'агент запущен, ждём отчёт',
+    fire_failed: 'не удалось запустить агента',
+    delivered: 'отчёт доставлен в Telegram',
+    delivery_failed: 'Nodul сообщил об ошибке доставки',
+    not_delivered: 'отчёт создан, но не доставлен',
+    agent_failed: 'агент не смог построить отчёт',
+    no_report: 'агент не создал отчёт вовремя'
+  },
+
+  MENU: {
+    RUN: 'Сформировать отчёт (v1.0)',
+    STATUS: 'Статус отчёта (v1.0)',
+    RETRY: 'Повторить запуск агента (v1.0)',
+    SETUP: 'Проверить настройку агента'
+  }
+};
+
+// Имена Script Properties с секретами. Значения задаются только в
+// «Настройки проекта → Свойства скрипта» и никогда не пишутся в код.
+const SCRIPT_PROPS = {
+  FIRE_URL: 'REPORT_AGENT_FIRE_URL',
+  FIRE_TOKEN: 'REPORT_AGENT_TOKEN',
+  BOT_TOKEN: 'TELEGRAM_BOT_TOKEN'
+};
+
 // ============================================================================
 // ПУБЛИЧНАЯ ТОЧКА ВХОДА ДЛЯ ТРИГГЕРА (v0.9+)
 // ============================================================================

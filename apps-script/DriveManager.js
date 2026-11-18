@@ -556,6 +556,18 @@ function saveFileToWorkspace_(fileName, content, mimeType) {
 }
 
 /**
+ * Ищет файл по имени в указанной папке (v1.0).
+ *
+ * @param {GoogleAppsScript.Drive.Folder} folder
+ * @param {string} fileName
+ * @returns {GoogleAppsScript.Drive.File|null} первый найденный файл или null
+ */
+function findFileInFolder_(folder, fileName) {
+  const files = folder.getFilesByName(fileName);
+  return files.hasNext() ? files.next() : null;
+}
+
+/**
  * Получает файл из AI Workspace по имени.
  * 
  * @param {string} fileName

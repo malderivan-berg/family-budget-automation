@@ -198,3 +198,118 @@ function runFullPipeline() {
     throw error;
   }
 }
+
+// ============================================================================
+// ОТЧЁТНЫЙ КОНВЕЙЕР v1.0 — публичные точки входа
+// Логика — в ReportAgentManager.gs
+// ============================================================================
+
+/**
+ * Команда меню: создать отчёт и передать его агенту.
+ */
+function runReportAgentPipeline() {
+  try {
+    const state = runReportAgentPipeline_();
+    showInfo_(
+      'Отчёт №' + state.reportId + ' передан агенту.\n\n' +
+      'Отчёт придёт в Telegram обычно через 5–15 минут. ' +
+      'Если через ' + REPORT_AGENT.DELIVERY_CHECK_MINUTES +
+      ' минут его не будет, придёт предупреждение.\n\n' +
+      'Сессия агента: ' + state.sessionUrl
+    );
+  } catch (error) {
+    Logger.log('runReportAgentPipeline: ' + error.message);
+    showError_(error.message);
+  }
+}
+
+/**
+ * Команда меню: повторно запустить агента для последнего отчёта.
+ */
+function retryReportAgent() {
+  try {
+    const state = retryReportAgent_();
+    showInfo_(
+      'Агент перезапущен для отчёта №' + state.reportId + '.\n\n' +
+      'Сессия агента: ' + state.sessionUrl
+    );
+  } catch (error) {
+    Logger.log('retryReportAgent: ' + error.message);
+    showError_(error.message);
+  }
+}
+
+/**
+ * Команда меню: статус последнего отчёта v1.0.
+ */
+function showReportAgentStatus() {
+  showInfo_(buildReportAgentStatusText_());
+}
+
+/**
+ * Команда меню: проверка настройки агента. Значения секретов не выводятся.
+ */
+function checkReportAgentSetup() {
+  const problems = getReportAgentSetupProblems_();
+  const mode = REPORT_AGENT.TEST_MODE
+    ? 'тестовый: отчёт получает только ' + REPORT_AGENT.ALERT_USER_NAME
+    : 'рабочий: отчёт получают все пользователи';
+  if (problems.length) {
+    showError_('Настройка не завершена:\n• ' + problems.join('\n• ') + '\n\nРежим: ' + mode);
+  } else {
+    showInfo_('Настройка в порядке.\n\nРежим: ' + mode);
+  }
+}
+
+/**
+ * Триггер: отложенная проверка доставки отчёта.
+ * Имя без «_» — иначе Apps Script не вызовет функцию по триггеру.
+ */
+function checkReportDelivered() {
+  checkReportDelivered_();
+}
+
+/**
+ * ТЕСТ (запуск из редактора): отправить тестовое предупреждение в Telegram.
+ * Проверяет TELEGRAM_BOT_TOKEN и доступ Apps Script к Bot API. Данные не меняет.
+ */
+function runTestTelegramAlert() {
+  const ok = sendTelegramAlert_(
+    'Тестовое сообщение: Apps Script может отправлять предупреждения напрямую. ' +
+    'Ничего делать не нужно.'
+  );
+  showInfo_(ok
+    ? 'Тестовое сообщение отправлено — проверьте Telegram.'
+    : 'Сообщение не отправлено. Подробности — в журнале выполнения.');
+}
+
+/**
+ * ТЕСТ (запуск из редактора): выгрузка report_data для последнего
+ * существующего отчёта БЕЗ создания нового отчёта и БЕЗ запуска агента.
+ * Сохраняет AI Workspace/report_data_test.json (перезаписывается).
+ */
+function runTestReportDataExport() {
+  try {
+    const sheet = getSheet_(SOURCE_SHEET_NAME);
+    const reportId = getLastReportBlock_(sheet).reportId;
+    const data = buildReportData_(reportId);
+    const file = saveFileWithOverwrite_(
+      getAIWorkspaceFolder_(),
+      'report_data_test.json',
+      JSON.stringify(data, null, 1),
+      'application/json'
+    );
+    showInfo_(
+      'Тестовая выгрузка готова.\n\n' +
+      'report_id = ' + data.report_id + '\n' +
+      'Период: ' + data.period_start + ' — ' + data.period_end +
+      ' (' + data.duration_days + ' дн.)\n' +
+      'Строк: ' + data.rows.length + '\n' +
+      'Получатели: ' + data.delivery.users.length + '\n\n' +
+      'Файл: ' + file.getUrl()
+    );
+  } catch (error) {
+    Logger.log('runTestReportDataExport: ' + error.message);
+    showError_(error.message);
+  }
+}
