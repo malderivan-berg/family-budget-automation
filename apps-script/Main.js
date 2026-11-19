@@ -278,9 +278,9 @@ function runTestTelegramAlert() {
     'Тестовое сообщение: Apps Script может отправлять предупреждения напрямую. ' +
     'Ничего делать не нужно.'
   );
-  showInfo_(ok
+  reportTestResult_(ok
     ? 'Тестовое сообщение отправлено — проверьте Telegram.'
-    : 'Сообщение не отправлено. Подробности — в журнале выполнения.');
+    : 'Сообщение не отправлено. Причина — в строке журнала выше.');
 }
 
 /**
@@ -299,7 +299,7 @@ function runTestReportDataExport() {
       JSON.stringify(data, null, 1),
       'application/json'
     );
-    showInfo_(
+    reportTestResult_(
       'Тестовая выгрузка готова.\n\n' +
       'report_id = ' + data.report_id + '\n' +
       'Период: ' + data.period_start + ' — ' + data.period_end +
@@ -309,7 +309,22 @@ function runTestReportDataExport() {
       'Файл: ' + file.getUrl()
     );
   } catch (error) {
-    Logger.log('runTestReportDataExport: ' + error.message);
-    showError_(error.message);
+    reportTestResult_('Ошибка выгрузки: ' + error.message);
+  }
+}
+
+/**
+ * Итог тестовой функции — в журнал выполнения редактора и всплывающей
+ * подсказкой в таблице. Не блокирует выполнение: диалог showInfo_ при
+ * запуске из редактора ждёт «ОК» во вкладке таблицы, и запуск «висит».
+ *
+ * @param {string} message
+ */
+function reportTestResult_(message) {
+  Logger.log(message);
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, PROJECT_NAME + ' — тест', 15);
+  } catch (error) {
+    // Нет открытой таблицы — достаточно журнала
   }
 }
