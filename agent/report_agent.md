@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Версия инструкции | 1.0 |
+| Версия инструкции | 1.1 |
 | Данные | `data v1.1`, выгрузка `report_data` schema 1.0 |
 | Архитектура | `docs/TARGET_ARCHITECTURE_v1.0.md`, раздел 6 |
 
@@ -26,20 +26,24 @@
 
 ## 3. Шаги
 
-1. **Идемпотентность.** Найди в папке отчёта (`parentId = report_folder_id`) файл `report_N.html`. Если он есть: найди `telegram_request_N.json` в папке `telegram_outbox_folder_id`; если его нет — выполни шаг 9; затем заверши работу.
+1. **Идемпотентность.** Найди в папке отчёта (`parentId = report_folder_id`) файл `report_N.html`. Если он есть: найди `telegram_request_N.json` в папке `telegram_outbox_folder_id`; если его нет — выполни шаг 2 и шаги 9.3–9.4 с ID найденного HTML; затем заверши работу.
 2. **Выгрузка.** Вызови `download_file_content(report_data_file_id)`. Коннектор сохраняет файл на диск и сообщает путь — скопируй этот файл в рабочую папку как `report_data_N.json`. Никогда не перепечатывай содержимое выгрузки вручную.
 3. **Проверка выгрузки.** `schema = report_data`, `schema_version = 1.0`, `report_id = N`. Иначе — шаг 10.
 4. **Чтение данных.** `python3 A/tools/show_data.py --data report_data_N.json`. Работай с этой таблицей.
 5. **Анализ.** Запиши `analysis_N.json` по схеме раздела 4 и правилам разделов 5–6.
 6. **Проверка текстов.** `python3 A/tools/check_numbers.py --data report_data_N.json --text analysis_N.json`. Исправляй тексты, пока нарушений не станет 0.
-7. **Сборка.** `python3 A/tools/render_report.py --data report_data_N.json --analysis analysis_N.json --out report_N.html --instruction-version 1.0`.
+7. **Сборка.** `python3 A/tools/render_report.py --data report_data_N.json --analysis analysis_N.json --out report_N.html --instruction-version 1.1`.
 8. **Контроль.**
    - `python3 A/tools/check_numbers.py --data report_data_N.json --html report_N.html` — 0 нарушений;
    - `python3 A/tools/render_check.py --html report_N.html --png report_N.png` — без переполнения (код 3 означает, что Playwright недоступен: допустимо, отметь в итоге);
    - открой `report_N.png` и убедись, что отчёт читается: нет наложений, пустых блоков, обрезанного текста.
-9. **Публикация.** Порядок важен:
-   1. создай `report_N.html` (text/html) в папке отчёта;
-   2. создай `telegram_request_N.json` (application/json) в папке `telegram_outbox_folder_id` по формату раздела 7. Этот файл — последний: его появление запускает доставку.
+9. **Публикация.** Файлы загружай ссылкой на локальный файл: `base64Content = "sha256:<хеш>:<абсолютный путь>"`, хеш — из `sha256sum <файл>`. Так в Drive попадают ровно те байты, что прошли проверку. Всегда указывай `disableConversionToGoogleType: true` — иначе HTML превратится в Google-документ. Порядок важен:
+   1. `create_file`: `title = report_N.html`, `parentId = report_folder_id`, `contentMimeType = text/html`. Запомни `id` созданного файла.
+   2. **Контроль загрузки.** `download_file_content(<id>)` и сравни `sha256sum` скачанного файла с локальным `report_N.html`. Не совпало — шаг 10.
+   3. `python3 A/tools/make_telegram_request.py --data report_data_N.json --html-file-id <id> --out telegram_request_N.json` — адресаты и подпись из выгрузки, без ручного ввода.
+   4. `create_file`: `title = telegram_request_N.json`, `parentId = telegram_outbox_folder_id`, `contentMimeType = application/json`. Этот файл — последний: его появление запускает доставку.
+
+   Если коннектор не принимает ссылку на файл — передай содержимое в `textContent` ровно как в файле; контроль загрузки (9.2) в этом случае особенно важен.
 10. **Ошибка.** Если шаги 2–8 не проходят после двух попыток исправления — ничего не публикуй и не создавай `telegram_request`. Создай в папке отчёта `report_N_error.md`: шаг, причина, вывод скрипта. Apps Script пришлёт предупреждение.
 
 Итог работы — одна строка: опубликован отчёт или нет, сколько чисел сверено, были ли замечания.
@@ -99,7 +103,7 @@
 }
 ```
 
-`users` и `caption` — из `report_data.delivery` без изменений: для каждого пользователя `userId`, `chatId` из `delivery.users`, `caption` — из `delivery.caption`.
+Файл собирает `make_telegram_request.py` (шаг 9.3); формат — для справки. `users` и `caption` — из `report_data.delivery` без изменений; `requestId` — время Europe/Moscow, `timestamp` — UTC. Формат совпадает с запросом v0.9 (`TelegramManager.createTelegramRequest_`), который разбирает сценарий 2 Nodul.
 
 ## 8. Права
 

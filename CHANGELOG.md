@@ -15,6 +15,7 @@
 - `Export.gs`: выгрузка `report_data` (schema 1.0, raw + display). `Config.gs`: настройки `REPORT_AGENT`, имена секретов `SCRIPT_PROPS`. `Main.gs`, `Menu.gs`: пункты меню v1.0 и тестовые функции. `DriveManager.gs`: `findFileInFolder_`.
 
 ### Changed
+- Инструкция агента 1.1: загрузка в Drive ссылкой на локальный файл (`sha256:…:путь`) с `disableConversionToGoogleType`, контроль загрузки по sha256, `telegram_request` собирает скрипт `agent/tools/make_telegram_request.py`.
 - `apps-script/` синхронизирован с живым проектом (`clasp clone`, 19.11.2026); файлы переименованы в `.js`, как у clasp. Восстановленный из docx `PromptTemplates` был неполным (не хватало `VOICE_NER` и функций промптов) — исправлено. Остальные 14 модулей совпали со снимком, кроме пустых строк.
 - Развёртывание Apps Script — через clasp вместо ручного копирования.
 - Одна таблица — один проект Apps Script: из `data v1.1` удаляются старые привязанные копии v0.3.1–v0.9, рабочий проект — v0.9.1.
