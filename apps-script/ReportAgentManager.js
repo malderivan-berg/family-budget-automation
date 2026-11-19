@@ -28,33 +28,33 @@
  * @returns {Object} состояние запуска
  */
 function runReportAgentPipeline_() {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(REPORT_AGENT.LOCK_TIMEOUT_MS)) {
-    throw new Error('Отчёт уже формируется. Повторите через минуту.');
-  }
-
-  try {
+  return withReportAgentLock_(function() {
     assertReportAgentSetup_();
 
     const report = createNewReport_();
     SpreadsheetApp.flush();
+    return startReportAgent_(report.id, false);
+  });
+}
 
-    // Состояние сохраняется сразу: при сбое выгрузки «Повторить запуск»
-    // продолжит с этого отчёта, а не создаст новый блок в «Расчеты».
-    const state = {
-      reportId: report.id,
-      status: REPORT_AGENT.STATUS.CREATED,
-      startedAt: new Date().toISOString()
-    };
-    saveReportAgentState_(state);
+/**
+ * Пилот: запуск агента для последнего существующего отчёта БЕЗ создания
+ * нового блока в «Расчеты» — данные таблицы не меняются. Только в тестовом
+ * режиме: отчёт получает только REPORT_AGENT.ALERT_USER_NAME.
+ * Файлы пилота — в папке отчёта с сегодняшней датой.
+ *
+ * @returns {Object} состояние запуска
+ */
+function runReportAgentPilot_() {
+  return withReportAgentLock_(function() {
+    assertReportAgentSetup_();
+    if (!REPORT_AGENT.TEST_MODE) {
+      throw new Error('Пилот доступен только в тестовом режиме (REPORT_AGENT.TEST_MODE = true).');
+    }
 
-    exportForState_(state);
-    fireForState_(state);
-    return state;
-
-  } finally {
-    lock.releaseLock();
-  }
+    const reportId = getLastReportBlock_(getSheet_(SOURCE_SHEET_NAME)).reportId;
+    return startReportAgent_(reportId, true);
+  });
 }
 
 /**
@@ -65,12 +65,7 @@ function runReportAgentPipeline_() {
  * @returns {Object} состояние запуска
  */
 function retryReportAgent_() {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(REPORT_AGENT.LOCK_TIMEOUT_MS)) {
-    throw new Error('Отчёт уже формируется. Повторите через минуту.');
-  }
-
-  try {
+  return withReportAgentLock_(function() {
     assertReportAgentSetup_();
 
     const state = getReportAgentState_();
@@ -84,7 +79,45 @@ function retryReportAgent_() {
     }
     fireForState_(state);
     return state;
+  });
+}
 
+/**
+ * Новое состояние запуска → выгрузка → запуск агента.
+ * Состояние сохраняется сразу: при сбое выгрузки «Повторить запуск»
+ * продолжит с этого отчёта, а не создаст новый блок в «Расчеты».
+ *
+ * @param {number} reportId
+ * @param {boolean} pilot
+ * @returns {Object} состояние запуска
+ */
+function startReportAgent_(reportId, pilot) {
+  const state = {
+    reportId: reportId,
+    status: REPORT_AGENT.STATUS.CREATED,
+    startedAt: new Date().toISOString(),
+    pilot: pilot
+  };
+  saveReportAgentState_(state);
+
+  exportForState_(state);
+  fireForState_(state);
+  return state;
+}
+
+/**
+ * Выполняет fn под блокировкой скрипта: два запуска отчёта одновременно невозможны.
+ *
+ * @param {function(): Object} fn
+ * @returns {Object}
+ */
+function withReportAgentLock_(fn) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(REPORT_AGENT.LOCK_TIMEOUT_MS)) {
+    throw new Error('Отчёт уже формируется. Повторите через минуту.');
+  }
+  try {
+    return fn();
   } finally {
     lock.releaseLock();
   }

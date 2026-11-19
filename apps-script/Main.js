@@ -314,6 +314,26 @@ function runTestReportDataExport() {
 }
 
 /**
+ * ТЕСТ (запуск из редактора): сквозной пилот v1.0 на последнем существующем
+ * отчёте БЕЗ создания нового блока в «Расчеты».
+ * Выгрузка → агент → Nodul → Telegram (только ALERT_USER_NAME) → проверка
+ * доставки через REPORT_AGENT.DELIVERY_CHECK_MINUTES минут.
+ */
+function runTestReportAgentPilot() {
+  try {
+    const state = runReportAgentPilot_();
+    reportTestResult_(
+      'Пилот запущен для отчёта №' + state.reportId + '.\n' +
+      'Папка: ' + state.folderUrl + '\n' +
+      'Сессия агента: ' + state.sessionUrl + '\n' +
+      'Проверка доставки — через ' + REPORT_AGENT.DELIVERY_CHECK_MINUTES + ' мин.'
+    );
+  } catch (error) {
+    reportTestResult_('Пилот не запущен: ' + error.message);
+  }
+}
+
+/**
  * Итог тестовой функции — в журнал выполнения редактора и всплывающей
  * подсказкой в таблице. Не блокирует выполнение: диалог showInfo_ при
  * запуске из редактора ждёт «ОК» во вкладке таблицы, и запуск «висит».
