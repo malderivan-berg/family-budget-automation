@@ -44,15 +44,4 @@ function assertReportFound_(rows, reportId) {
   }
 }
 
-/**
- * Проверяет, что введен report_id.
- *
- * @param {string} reportId
- */
-function assertReportIdEntered_(reportId) {
-  if (!String(reportId).trim()) {
-    throw new Error(MSG_NOTHING_ENTERED);
-  }
-}
-
 

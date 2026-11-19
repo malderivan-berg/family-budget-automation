@@ -8,26 +8,24 @@
 
 > Ранний снимок из docx (`*.gs`, коммит `8c55bad`) был неполным: в `PromptTemplates` не хватало промпта `VOICE_NER` и функций работы с промптами. Источник истины — эта папка.
 
-| Модуль | Ответственность | В v1.0 |
-|---|---|---|
-| Config.js | Настройки проекта | Изменяется |
-| Utils.js | Вспомогательные функции | Без изменений |
-| Validation.js | Проверки входных данных | Без изменений |
-| Main.js | Публичные точки входа | Изменяется |
-| Menu.js | Меню Google Sheets | Изменяется |
-| Export.js | Экспорт report_id | Изменяется: выгрузка `report_data` в JSON |
-| Reports.js | Создание отчёта, report_id | Изменяется: удаление SCHEMA-заглушек |
-| ReportAgentManager.js | Запуск агента, контроль доставки | Новый (фаза 2) |
-| HtmlReportRenderer.js | Legacy SCHEMA-рендерер | Удаляется |
-| PromptTemplates.js | Промпты отчёта; устаревшая копия `VOICE_NER` | Удаляется целиком: промпт отчёта → `agent/report_agent.md`; рабочий промпт голосового ввода — только файл `AI Workspace/Voice/Prompts/voice_ner_prompt.txt` |
-| PromptBuilder.js | AI Job Package | Удаляется |
-| Import.js | Импорт ответа Nodul | Удаляется |
-| DriveManager.js | Работа с Google Drive | Изменяется |
-| PipelineManager.js | Polling-конвейер | Удаляется → ReportAgentManager.js |
-| TelegramManager.js | Запросы на отправку в Telegram | Изменяется |
-| VoiceInputManager.js | Голосовой ввод | Без изменений |
+| Модуль | Ответственность |
+|---|---|
+| Config.js | Настройки проекта; секреты — только имена свойств (`SCRIPT_PROPS`) |
+| Main.js | Публичные точки входа: меню, триггеры, тестовые функции |
+| Menu.js | Меню «Family Budget» |
+| Reports.js | Создание отчёта: новый блок в «Расчеты» |
+| Export.js | Выгрузка `report_data_N.json` для агента |
+| ReportAgentManager.js | Запуск агента, проверка доставки, повторная отправка, предупреждения в Telegram |
+| DriveManager.js | Папки и файлы Google Drive |
+| VoiceInputManager.js | Голосовой ввод (Voice Transaction Batch Schema v2.0) |
+| Utils.js | Общие функции: листы, сообщения |
+| Validation.js | Проверки входных данных |
 
-⚠️ Не запускайте `updateVoiceNerPromptInDrive()`: она перезапишет рабочий `voice_ner_prompt.txt` устаревшей версией из кода (с `update_planned`, `target_hint`, `confidence_score`) и сломает голосовой ввод. Функция удаляется в фазе 4.
+В v1.0 удалены модули старого конвейера: PipelineManager, Import, PromptBuilder, PromptTemplates, HtmlReportRenderer, TelegramManager. Неиспользуемые функции и настройки голосового ввода сознательно оставлены: голосовой контур в v1.0 не меняется.
+
+**Точки входа.** Меню: `runReportAgentPipeline`, `showReportAgentStatus`, `resendLastReport`, `retryReportAgent`, `checkReportAgentSetup`. Триггеры: `runProcessVoiceCallbacks` (каждые 2 минуты), `checkReportDelivered` (создаётся при запуске отчёта). Тесты из редактора: `runTestTelegramAlert`, `runTestReportDataExport`, `runTestReportAgentPilot` (только в тестовом режиме).
+
+Рабочий промпт голосового ввода — только файл `AI Workspace/Voice/Prompts/voice_ner_prompt.txt`; его устаревшая копия в коде удалена вместе с PromptTemplates.
 
 `appsscript.json` — манифест проекта: часовой пояс Europe/Moscow, среда V8, явный список OAuth-областей не задан (Apps Script определяет их автоматически).
 

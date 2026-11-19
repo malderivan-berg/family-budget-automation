@@ -18,6 +18,7 @@
 - `Export.gs`: выгрузка `report_data` (schema 1.0, raw + display). `Config.gs`: настройки `REPORT_AGENT`, имена секретов `SCRIPT_PROPS`. `Main.gs`, `Menu.gs`: пункты меню v1.0 и тестовые функции. `DriveManager.gs`: `findFileInFolder_`.
 
 ### Changed
+- Фаза 4: доставка обоим (`TEST_MODE = false`); меню — только пункты v1.0, без пометки «(v1.0)»; новый пункт «Отправить отчёт повторно» (пересоздаёт запрос агента, старый ответ — в корзину).
 - Сценарий 2 Nodul: запрос — самый новый `telegram_request_N.json` в Outbox, ответ — `telegram_response_N.json`; узлы поиска и безвозвратного удаления старого ответа убраны.
 - Инструкция агента 1.1: загрузка в Drive ссылкой на локальный файл (`sha256:…:путь`) с `disableConversionToGoogleType`, контроль загрузки по sha256, `telegram_request` собирает скрипт `agent/tools/make_telegram_request.py`.
 - `apps-script/` синхронизирован с живым проектом (`clasp clone`, 19.11.2026); файлы переименованы в `.js`, как у clasp. Восстановленный из docx `PromptTemplates` был неполным (не хватало `VOICE_NER` и функций промптов) — исправлено. Остальные 14 модулей совпали со снимком, кроме пустых строк.
@@ -25,6 +26,9 @@
 - Одна таблица — один проект Apps Script: из `data v1.1` удаляются старые привязанные копии v0.3.1–v0.9, рабочий проект — v0.9.1.
 - Шаблон отчёта v1.1: единая шкала шрифтов (h1 30 → раздел 22 → блок 17 → текст 15 → подпись 13), заголовки разделов с золотой меткой; версии в подвале с префиксом «v», чтобы сверка чисел их не учитывала.
 - `docs/TARGET_ARCHITECTURE_v1.0.md` 0.3: формат `report_data` (raw + display), разделение труда внутри агента, находки в данных v1.1.
+
+### Removed
+- Старый отчётный конвейер: модули PipelineManager, Import, PromptBuilder, PromptTemplates (включая устаревшую копию промпта голосового ввода), HtmlReportRenderer, TelegramManager; xlsx-экспорт, SCHEMA-заглушки в Reports, функции Job/AI_Report/архива в DriveManager, неиспользуемые настройки (`AI_PIPELINE_MODE`, `PIPELINE`, `PROJECT_FILES`, `ARCHIVE_FILES` и др.). Голосовой ввод не затронут.
 
 ## [0.9] — 2026-09-06 — Stable
 

@@ -1,7 +1,7 @@
 /**
  * ============================================================================
  * Family Budget Automation
- * ReportAgentManager.gs  (v1.0)
+ * ReportAgentManager.gs
  * ----------------------------------------------------------------------------
  * Отчётный конвейер v1.0: запуск агента отчёта и контроль доставки.
  *
@@ -121,6 +121,46 @@ function withReportAgentLock_(fn) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Повторная отправка последнего отчёта без запуска агента. Запрос
+ * telegram_request_N.json, созданный агентом, пересоздаётся с тем же
+ * содержимым — сценарий Nodul срабатывает на новый файл в Outbox.
+ * Старый ответ Nodul уходит в корзину, чтобы проверка доставки прочитала новый.
+ *
+ * @returns {Object} состояние запуска
+ */
+function resendLastReport_() {
+  return withReportAgentLock_(function() {
+    const state = getReportAgentState_();
+    if (!state || !state.reportId || !state.folderId) {
+      throw new Error('Нет отчёта для повторной отправки.');
+    }
+
+    const id = state.reportId;
+    const outbox = getTelegramOutboxFolder_();
+    const requestName = reportFileName_(REPORT_AGENT.FILES.TELEGRAM_REQUEST, id);
+    const request = findFileInFolder_(outbox, requestName);
+    if (!request) {
+      throw new Error('Запрос на доставку отчёта №' + id + ' не найден: агент не ' +
+        'завершил работу. Используйте «' + REPORT_AGENT.MENU.RETRY + '».');
+    }
+    const content = request.getBlob().getDataAsString('UTF-8');
+
+    deleteFileByName_(getTelegramInboxFolder_(),
+      reportFileName_(REPORT_AGENT.FILES.TELEGRAM_RESPONSE, id));
+    saveFileWithOverwrite_(outbox, requestName, content, MimeType.PLAIN_TEXT);
+
+    state.status = REPORT_AGENT.STATUS.RESENT;
+    state.resentAt = new Date().toISOString();
+    state.error = null;
+    saveReportAgentState_(state);
+
+    scheduleDeliveryCheck_();
+    Logger.log('Report resent: ' + requestName);
+    return state;
+  });
 }
 
 /**
@@ -267,7 +307,8 @@ function checkReportDelivered_() {
   deleteDeliveryCheckTriggers_();
 
   const state = getReportAgentState_();
-  if (!state || state.status !== REPORT_AGENT.STATUS.FIRED) {
+  const waiting = [REPORT_AGENT.STATUS.FIRED, REPORT_AGENT.STATUS.RESENT];
+  if (!state || waiting.indexOf(state.status) < 0) {
     Logger.log('Delivery check: nothing to check');
     return;
   }
@@ -296,7 +337,7 @@ function checkReportDelivered_() {
     } else {
       state.status = REPORT_AGENT.STATUS.DELIVERY_FAILED;
       alert = 'Отчёт №' + id + ' не доставлен: Nodul вернул статус «' +
-        delivery.status + '».';
+        delivery.status + '».\nПовторить отправку: меню «' + REPORT_AGENT.MENU.RESEND + '».';
     }
   } else if (errorFile) {
     state.status = REPORT_AGENT.STATUS.AGENT_FAILED;
@@ -305,7 +346,8 @@ function checkReportDelivered_() {
   } else if (htmlFile) {
     state.status = REPORT_AGENT.STATUS.NOT_DELIVERED;
     alert = 'Отчёт №' + id + ' построен, но за ' + REPORT_AGENT.DELIVERY_CHECK_MINUTES +
-      ' минут не доставлен в Telegram. Проверьте сценарий доставки в Nodul.';
+      ' минут не доставлен в Telegram. Проверьте сценарий доставки в Nodul.' +
+      '\nПовторить отправку: меню «' + REPORT_AGENT.MENU.RESEND + '».';
   } else {
     state.status = REPORT_AGENT.STATUS.NO_REPORT;
     alert = 'Агент не создал отчёт №' + id + ' за ' + REPORT_AGENT.DELIVERY_CHECK_MINUTES +

@@ -42,20 +42,6 @@ function getLastRow_(sheet) {
 
 
 /**
- * Возвращает текущую дату и время в формате проекта.
- *
- * @returns {string}
- */
-function getTimestamp_() {
-  return Utilities.formatDate(
-    new Date(),
-    Session.getScriptTimeZone(),
-    DATE_TIME_FORMAT
-  );
-}
-
-
-/**
  * Показывает информационное сообщение пользователю.
  *
  * Работает и из UI-контекста, и из контекста редактора Apps Script.
@@ -97,56 +83,6 @@ function showMessage_(title, message) {
   } catch (error) {
     Logger.log(title + ': ' + text);
   }
-}
-
-
-/**
- * Копирует оформление диапазона.
- *
- * @param {SpreadsheetApp.Range} sourceRange
- * @param {SpreadsheetApp.Range} targetRange
- */
-function copyCellStyle_(sourceRange, targetRange) {
-
-
-  targetRange.setBackgrounds(sourceRange.getBackgrounds());
-  targetRange.setFontColors(sourceRange.getFontColors());
-  targetRange.setFontFamilies(sourceRange.getFontFamilies());
-  targetRange.setFontSizes(sourceRange.getFontSizes());
-  targetRange.setFontWeights(sourceRange.getFontWeights());
-  targetRange.setFontStyles(sourceRange.getFontStyles());
-  targetRange.setFontLines(sourceRange.getFontLines());
-
-
-  targetRange.setHorizontalAlignments(
-    sourceRange.getHorizontalAlignments()
-  );
-
-
-  targetRange.setVerticalAlignments(
-    sourceRange.getVerticalAlignments()
-  );
-
-
-  targetRange.setNumberFormats(sourceRange.getNumberFormats());
-
-
-  targetRange.setWrapStrategies(
-    sourceRange.getWrapStrategies()
-  );
-
-
-  targetRange.setTextDirections(
-    sourceRange.getTextDirections()
-  );
-
-
-  targetRange.setTextRotations(
-    sourceRange.getTextRotations()
-  );
-
-
-  targetRange.setNotes(sourceRange.getNotes());
 }
 
 

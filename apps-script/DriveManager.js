@@ -9,7 +9,6 @@
  *  - создание структуры папок проекта;
  *  - получение ссылок на рабочие папки;
  *  - работа с файлами (сохранение, чтение, перемещение);
- *  - архивирование отчетов;
  *  - единая точка доступа к Google Drive.
  * ============================================================================
  */
@@ -24,12 +23,8 @@
  */
 const DRIVE_CACHE = {
   root: null,
-  data: null,
   workspace: null,
-  job: null,
   reports: null,
-  archive: null,
-  inbox: null,
   telegram: null,
   telegramOutbox: null,
   telegramInbox: null,
@@ -63,22 +58,6 @@ function getProjectRootFolder_() {
   );
 }
 
-/**
- *  Возвращает   папку  Data.
- *
- * @returns {GoogleAppsScript.Drive.Folder}
- */
-function getDataFolder_() {
-  return getCachedFolder_(
-    'data',
-    function () {
-      return getOrCreateFolder_(
-        getProjectRootFolder_(),
-        DRIVE.DATA_FOLDER
-      );
-    }
-  );
-}
 
 /**
  *  Возвращает   папку  AI Workspace.
@@ -97,24 +76,6 @@ function getAIWorkspaceFolder_() {
   );
 }
 
-/**
- *  Возвращает   папку  Job  внутри  AI Workspace.
- *  В этой папке хранится только AI Job Package.txt.
- *  ИИ-оркестратор настраивает триггер на эту подпапку.
- *
- * @returns {GoogleAppsScript.Drive.Folder}
- */
-function getAIJobFolder_() {
-  return getCachedFolder_(
-    'job',
-    function () {
-      return getOrCreateFolder_(
-        getAIWorkspaceFolder_(),
-        DRIVE.AI_JOB_FOLDER
-      );
-    }
-  );
-}
 
 /**
  *  Возвращает   папку  Reports.
@@ -133,39 +94,6 @@ function getReportsFolder_() {
   );
 }
 
-/**
- *  Возвращает   папку  Archive.
- *
- * @returns {GoogleAppsScript.Drive.Folder}
- */
-function getArchiveFolder_() {
-  return getCachedFolder_(
-    'archive',
-    function () {
-      return getOrCreateFolder_(
-        getProjectRootFolder_(),
-        DRIVE.ARCHIVE_FOLDER
-      );
-    }
-  );
-}
-
-/**
- *  Возвращает   папку  Inbox.
- *
- * @returns {GoogleAppsScript.Drive.Folder}
- */
-function getInboxFolder_() {
-  return getCachedFolder_(
-    'inbox',
-    function () {
-      return getOrCreateFolder_(
-        getProjectRootFolder_(),
-        DRIVE.INBOX_FOLDER
-      );
-    }
-  );
-}
 
 /**
  *  Возвращает   папку  Telegram  внутри  AI Workspace.
@@ -497,9 +425,6 @@ function getOrCreateFolder_(
  * Универсальная функция сохранения файла с перезаписью.
  * Если файл с таким именем существует — удаляет его и создаёт новый.
  * 
- * Все специализированные функции (saveFileToWorkspace_, saveAIJobPackage_)
- * являются обёртками над этой функцией.
- * 
  * @param {GoogleAppsScript.Drive.Folder} folder - папка для сохранения
  * @param {string} fileName - имя файла
  * @param {string} content - содержимое файла
@@ -537,23 +462,6 @@ function deleteFileByName_(folder, fileName) {
   return deleted;
 }
 
-/**
- *  Сохраняет   файл   в  AI Workspace  с   перезаписью.
- *  Обёртка   над  saveFileWithOverwrite_.
- * 
- * @param {string} fileName -  имя   файла
- * @param {string} content -  содержимое   файла
- * @param {string} mimeType -  тип   файла
- * @returns {GoogleAppsScript.Drive.File}
- */
-function saveFileToWorkspace_(fileName, content, mimeType) {
-  return saveFileWithOverwrite_(
-    getAIWorkspaceFolder_(),
-    fileName,
-    content,
-    mimeType
-  );
-}
 
 /**
  * Ищет файл по имени в указанной папке (v1.0).
@@ -567,167 +475,6 @@ function findFileInFolder_(folder, fileName) {
   return files.hasNext() ? files.next() : null;
 }
 
-/**
- * Получает файл из AI Workspace по имени.
- * 
- * @param {string} fileName
- * @returns {GoogleAppsScript.Drive.File}
- */
-function getFileFromWorkspace_(fileName) {
-  const folder = getAIWorkspaceFolder_();
-  const files = folder.getFilesByName(fileName);
-  
-  if (!files.hasNext()) {
-    throw new Error('Файл "' + fileName + '" не найден в AI Workspace.');
-  }
-  
-  return files.next();
-}
-
-/**
- * Читает содержимое файла из AI Workspace.
- * 
- * @param {string} fileName
- * @returns {string}
- */
-function readFileFromWorkspace_(fileName) {
-  const file = getFileFromWorkspace_(fileName);
-  return file.getBlob().getDataAsString('UTF-8').trim();
-}
-
-/**
- * Перемещает Google Spreadsheet в AI Workspace.
- * 
- * @param {GoogleAppsScript.SpreadsheetApp.Spreadsheet} spreadsheet
- * @returns {GoogleAppsScript.Drive.File}
- */
-function moveSpreadsheetToWorkspace_(spreadsheet) {
-  const folder = getAIWorkspaceFolder_();
-  const file = DriveApp.getFileById(spreadsheet.getId());
-  
-  // Перемещаем в AI Workspace
-  folder.addFile(file);
-  DriveApp.getRootFolder().removeFile(file);
-  
-  return file;
-}
-
-/**
- * Сохраняет AI Job Package в подпапку Job с перезаписью.
- * Обёртка над saveFileWithOverwrite_.
- *
- * @param {string} content - содержимое AI Job Package
- * @returns {GoogleAppsScript.Drive.File}
- */
-function saveAIJobPackage_(content) {
-  return saveFileWithOverwrite_(
-    getAIJobFolder_(),
-    PROJECT_FILES.AI_JOB_PACKAGE,
-    content,
-    MimeType.PLAIN_TEXT
-  );
-}
-
-/**
- * Читает содержимое AI Job Package из подпапки Job.
- *
- * @returns {string}
- */
-function readAIJobPackage_() {
-  const folder = getAIJobFolder_();
-  const fileName = PROJECT_FILES.AI_JOB_PACKAGE;
-  const files = folder.getFilesByName(fileName);
-  
-  if (!files.hasNext()) {
-    throw new Error('AI Job Package не найден в папке Job.');
-  }
-  
-  return files.next().getBlob().getDataAsString('UTF-8').trim();
-}
-
-/**
- * Сохраняет Telegram request в папку Telegram/Outbox с перезаписью.
- * Обёртка над saveFileWithOverwrite_.
- *
- * @param {string} content - содержимое telegram_request.json
- * @returns {GoogleAppsScript.Drive.File}
- */
-function saveTelegramRequest_(content) {
-  return saveFileWithOverwrite_(
-    getTelegramOutboxFolder_(),
-    PROJECT_FILES.TELEGRAM_REQUEST,
-    content,
-    MimeType.PLAIN_TEXT
-  );
-}
-
-/**
- * Читает содержимое Telegram request из папки Telegram/Outbox.
- *
- * @returns {string}
- */
-function readTelegramRequest_() {
-  const folder = getTelegramOutboxFolder_();
-  const fileName = PROJECT_FILES.TELEGRAM_REQUEST;
-  const files = folder.getFilesByName(fileName);
-  
-  if (!files.hasNext()) {
-    throw new Error('Telegram request не найден в папке Telegram/Outbox.');
-  }
-  
-  return files.next().getBlob().getDataAsString('UTF-8').trim();
-}
-
-/**
- * Сохраняет Telegram response в папку Telegram/Inbox с перезаписью.
- * Обёртка над saveFileWithOverwrite_.
- *
- * @param {string} content - содержимое telegram_response.json
- * @returns {GoogleAppsScript.Drive.File}
- */
-function saveTelegramResponse_(content) {
-  return saveFileWithOverwrite_(
-    getTelegramInboxFolder_(),
-    PROJECT_FILES.TELEGRAM_RESPONSE,
-    content,
-    MimeType.PLAIN_TEXT
-  );
-}
-
-/**
- * Читает содержимое Telegram response из папки Telegram/Inbox.
- *
- * @returns {string}
- */
-function readTelegramResponse_() {
-  const folder = getTelegramInboxFolder_();
-  const fileName = PROJECT_FILES.TELEGRAM_RESPONSE;
-  const files = folder.getFilesByName(fileName);
-  
-  if (!files.hasNext()) {
-    throw new Error('Telegram response не найден в папке Telegram/Inbox.');
-  }
-  
-  return files.next().getBlob().getDataAsString('UTF-8').trim();
-}
-
-/**
- * Удаляет файл Telegram request из папки Telegram/Outbox.
- *
- * @returns {boolean} true, если файл был удалён
- */
-function deleteTelegramRequest_() {
-  return deleteFileByName_(getTelegramOutboxFolder_(), PROJECT_FILES.TELEGRAM_REQUEST);
-}
-
-/**
- * Удаляет файл Telegram response из папки Telegram/Inbox.
- *
- * @returns {boolean} true, если файл был удалён
- */
-function deleteTelegramResponse_() {
-  return deleteFileByName_(getTelegramInboxFolder_(), PROJECT_FILES.TELEGRAM_RESPONSE);
-}
 
 // ============================================================================
 // ФУНКЦИИ РАБОТЫ С ФАЙЛАМИ VOICE (v0.9+)
@@ -901,83 +648,6 @@ function isVoiceConfirmedReady_(batchId) {
   return files.hasNext();
 }
 
-/**
- * Проверяет наличие файла Telegram response в папке Telegram/Inbox.
- *
- * @returns {boolean}
- */
-function isTelegramResponseReady_() {
-  const folder = getTelegramInboxFolder_();
-  const files = folder.getFilesByName(PROJECT_FILES.TELEGRAM_RESPONSE);
-  return files.hasNext();
-}
-
-/**
- * Архивирует полный комплект файлов отчета.
- * Создает структуру: Reports/YYYY/YYYY-MM/Report_ID_DATE/
- * 
- * @param {number|string} reportId
- * @param {Date} reportDate
- * @param {Object} files - объект с файлами для архивирования
- * @returns {GoogleAppsScript.Drive.Folder}
- */
-function archiveReport_(reportId, reportDate, files) {
-  const folder = getReportFolder_(reportId, reportDate);
-  
-  // Архивируем Excel (копируем Google Spreadsheet)
-  if (files.excelSpreadsheetId) {
-    const sourceFile = DriveApp.getFileById(files.excelSpreadsheetId);
-    const excelFileName = EXPORT_FILE_PREFIX + reportId + '_' + 
-      Utilities.formatDate(reportDate, Session.getScriptTimeZone(), DATE_TIME_FORMAT);
-    
-    // Копируем Spreadsheet в папку архива
-    sourceFile.makeCopy(excelFileName, folder);
-  }
-  
-  // Архивируем AI Job Package
-  if (files.aiJobPackageContent) {
-    const blob = Utilities.newBlob(
-      files.aiJobPackageContent, 
-      MimeType.PLAIN_TEXT, 
-      PROJECT_FILES.AI_JOB_PACKAGE
-    );
-    folder.createFile(blob);
-  }
-  
-  //  Архивируем  AI Report
-  if (files.aiReportContent) {
-    const aiReportFileName = AI_PIPELINE_MODE === 'HTML' 
-      ? PROJECT_FILES.AI_REPORT_HTML 
-      : PROJECT_FILES.AI_RESPONSE;
-    const mimeType = AI_PIPELINE_MODE === 'HTML' ? MimeType.HTML : MimeType.PLAIN_TEXT;
-    
-    const blob = Utilities.newBlob(files.aiReportContent, mimeType, aiReportFileName);
-    folder.createFile(blob);
-  }
-  
-  //  Архивируем  HTML Report
-  if (files.htmlReportContent) {
-    const blob = Utilities.newBlob(
-      files.htmlReportContent, 
-      MimeType.HTML, 
-      PROJECT_FILES.HTML_REPORT
-    );
-    folder.createFile(blob);
-  }
-  
-  return folder;
-}
-
-/**
- * Удаляет файл из AI Workspace по имени.
- * Обёртка над deleteFileByName_.
- * 
- * @param {string} fileName - имя файла для удаления
- * @returns {boolean} true, если файл был удалён
- */
-function deleteFileFromWorkspace_(fileName) {
-  return deleteFileByName_(getAIWorkspaceFolder_(), fileName);
-}
 
 /**
  * Удаляет все старые файлы voice_notification_*.json из папки Telegram/Outbox.
