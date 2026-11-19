@@ -41,7 +41,7 @@
    1. `create_file`: `title = report_N.html`, `parentId = report_folder_id`, `contentMimeType = text/html`. Запомни `id` созданного файла.
    2. **Контроль загрузки.** `download_file_content(<id>)` и сравни `sha256sum` скачанного файла с локальным `report_N.html`. Не совпало — шаг 10.
    3. `python3 A/tools/make_telegram_request.py --data report_data_N.json --html-file-id <id> --out telegram_request_N.json` — адресаты и подпись из выгрузки, без ручного ввода.
-   4. `create_file`: `title = telegram_request_N.json`, `parentId = telegram_outbox_folder_id`, `contentMimeType = application/json`. Этот файл — последний: его появление запускает доставку.
+   4. `create_file`: `title = telegram_request_N.json`, `parentId = telegram_outbox_folder_id`, `contentMimeType = text/plain` (как в v0.9: так его читает сценарий 2 Nodul). Этот файл — последний: его появление запускает доставку.
 
    Если коннектор не принимает ссылку на файл — передай содержимое в `textContent` ровно как в файле; контроль загрузки (9.2) в этом случае особенно важен.
 10. **Ошибка.** Если шаги 2–8 не проходят после двух попыток исправления — ничего не публикуй и не создавай `telegram_request`. Создай в папке отчёта `report_N_error.md`: шаг, причина, вывод скрипта. Apps Script пришлёт предупреждение.

@@ -127,11 +127,11 @@
 
 ### 5.4. Telegram Request v1.1
 
-`AI Workspace/Telegram/Outbox/telegram_request_{report_id}.json`. Поля как в v1.0 (`TelegramManager.createTelegramRequest_`): `requestId`, `reportId`, `users[{userId, chatId, caption}]`, `htmlFileId`, `htmlFileName`, `timestamp`. Изменение: уникальное имя файла вместо фиксированного (L3). Пишет агент из блока `delivery`, кроме `htmlFileId` — ID созданного им HTML.
+`AI Workspace/Telegram/Outbox/telegram_request_{report_id}.json`. Поля как в v1.0 (`TelegramManager.createTelegramRequest_`): `requestId`, `reportId`, `users[{userId, chatId, caption}]`, `htmlFileId`, `htmlFileName`, `timestamp`. Изменение: уникальное имя файла вместо фиксированного (L3). Тип файла прежний — `text/plain`. Собирает `agent/tools/make_telegram_request.py` из блока `delivery`; `htmlFileId` — ID загруженного агентом HTML.
 
 ### 5.5. Telegram Response
 
-Без изменений по полям; имя `telegram_response_{report_id}.json`. Отчёт считается доставленным только при `status = success`.
+Без изменений по полям: `requestId`, `status`, `results[{userId, status, messageId, error}]`, `timestamp`, `summary{total, success, error}` (образец — ответ на отчёт №8 от 02.09.2026). Имя — `telegram_response_{report_id}.json`, `report_id` берётся из `reportId` запроса. Отчёт считается доставленным только при `status = success`.
 
 ## 6. Агент отчёта
 
