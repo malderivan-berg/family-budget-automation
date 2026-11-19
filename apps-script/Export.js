@@ -1,4 +1,3 @@
-
 /**
  * ============================================================================
  * Family Budget Automation
@@ -7,6 +6,7 @@
  * Экспорт выбранного report_id в отдельный Google Spreadsheet.
  * ============================================================================
  */
+
 
 /**
  * Запрашивает report_id.
@@ -55,6 +55,7 @@ function askReportId_() {
 
 }
 
+
 /**
  * Выполняет экспорт отчета.
  */
@@ -93,6 +94,7 @@ function exportReport_(reportId) {
     }
   };
 }
+
 
 /**
  * Возвращает строки отчета.
@@ -135,6 +137,7 @@ function getReportRows_(sheet, reportId) {
 
 }
 
+
 /**
  * Создает файл экспорта в AI Workspace с фиксированным именем.
  * Перед созданием удаляет старую таблицу Dataset из AI Workspace.
@@ -165,6 +168,7 @@ function createExportSpreadsheet_(reportId) {
   };
 }
 
+
 /**
  * Заполняет файл экспорта.
  */
@@ -185,6 +189,7 @@ function fillExportSpreadsheet_(
   targetSheet.setFrozenRows(1);
 
 }
+
 
 /**
  * Копирует строку заголовков.
@@ -220,6 +225,7 @@ function copyHeader_(
   );
 
 }
+
 
 /**
  * Копирует строки отчета.

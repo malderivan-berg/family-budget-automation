@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Версия документа | 0.3 (черновик для согласования) |
-| Дата | 18.11.2026 |
+| Версия документа | 0.4 (черновик для согласования) |
+| Дата | 19.11.2026 |
 | Статус | Proposed. Источник истины для миграции до выпуска Handbook v1.0 |
 | Охват | Направление А — отчётный конвейер. Голосовой ввод (Voice v2.0) не меняется |
 | Рабочие данные | `Data/data v1.1` (production). `data v1.2 migration baseline` — направление Б (Stage 3) |
@@ -168,7 +168,7 @@
 | DriveManager.gs | Без изменений по принципам; удалить функции Job/AI_Report |
 | **ReportAgentManager.gs** (новый) | `fireReportAgent_`, состояние запуска, `scheduleDeliveryCheck_`, `checkReportDelivered_` |
 | TelegramManager.gs | Повторная отправка последнего отчёта (пишет `telegram_request_N.json`); предупреждения (D1) |
-| PipelineManager.gs, Import.gs, PromptBuilder.gs, PromptTemplates.gs, HtmlReportRenderer.gs | Удалить. Промпт переносится в инструкцию агента |
+| PipelineManager.gs, Import.gs, PromptBuilder.gs, PromptTemplates.gs, HtmlReportRenderer.gs | Удалить. Промпт отчёта переносится в инструкцию агента. `PromptTemplates.VOICE_NER` и `updateVoiceNerPromptInDrive()` — устаревшая копия промпта голосового ввода (см. §15, п. 6), удаляются вместе с модулем; рабочий промпт — только файл `voice_ner_prompt.txt` |
 | VoiceInputManager.gs, Utils.gs, Validation.gs | Без изменений |
 
 Состояние последнего запуска хранится в Script Properties (как `pipeline_state` в v0.9), структура таблицы не меняется.
@@ -200,17 +200,20 @@ Family Budget Automation/
 
 ```text
 family-budget-automation/
-├── apps-script/   код .gs и appsscript.json (clasp)
+├── apps-script/   код модулей (.js, как у clasp) и appsscript.json
 ├── agent/         report_agent.md, template/, tools/ (графики, сверка, проверка вёрстки)
 ├── docs/          Handbook, Целевая архитектура, CHANGELOG, Roadmap
 └── README.md
 ```
 
-Развёртывание кода Apps Script — вручную. clasp недоступен: облачная среда Claude не имеет сетевого доступа к Google API (script.googleapis.com, oauth2.googleapis.com — отказ политики), а приложение Claude не устанавливается на компьютер пользователя. Порядок:
+Развёртывание кода Apps Script — через clasp на компьютере пользователя (Windows, с 19.11.2026). Из облачной среды Claude clasp не работает: Google API (script.googleapis.com, oauth2.googleapis.com) закрыты политикой сети.
 
 1. Источник истины кода — `apps-script/` в репозитории; изменения вносит Claude коммитом.
-2. Пользователь открывает изменённый файл на github.com → «Copy raw file» → заменяет содержимое одноимённого файла в редакторе Apps Script целиком.
-3. Проверка — тестовой функцией из описания изменения; откат — содержимое файла из предыдущего коммита.
+2. Claude записывает изменённые файлы в папку clasp на компьютере пользователя через доступ к папке (`Documents/fba-apps-script`).
+3. Пользователь делает копию папки, затем `clasp status` и `clasp push`. `push` заменяет проект целиком.
+4. Проверка — тестовой функцией из описания изменения; откат — `clasp push` из копии папки или из предыдущего коммита.
+
+Запасной путь без clasp — заменить содержимое файла в редакторе Apps Script текстом из репозитория.
 
 Агенту отчёта это не мешает: коннектор Google Drive работает через серверы Anthropic, а не через сеть среды.
 
@@ -255,7 +258,7 @@ family-budget-automation/
 | D5 | Запуск отчёта из Telegram командой /report | После v1.0: Nodul → Apps Script Web App → выгрузка → `/fire` |
 | D6 | Автоматическое развёртывание кода | После v1.0: GitHub Actions + clasp (серверы GitHub имеют доступ к Google API). Требует один раз получить OAuth-токен clasp и сохранить его в секретах репозитория |
 
-## 15. Находки в данных v1.1 (18.11.2026)
+## 15. Находки в данных и коде v1.1 (18–19.11.2026)
 
 Проверены на отчёте №9 арифметически, до рубля. Учтены в `agent/report_agent.md`, раздел 6; нужно учесть в Stage 3 (направление Б) и в Handbook.
 
@@ -264,6 +267,7 @@ family-budget-automation/
 3. **Капитал = недвижимость за вычетом ипотеки + депозиты + инвестиции + ликвидные деньги** — для семьи, мужа и жены. На этом построен график «Из чего сложилось изменение капитала».
 4. **«Неучтённые транзакции» включают переводы на брокерские счета**, потому что всё изменение брокерского счёта считается переоценкой. В отчёте №9 крупный перевод на брокерские счета дал отрицательное необъяснённое изменение того же порядка. Это ровно проблема, которую решает Stage 3 (§7.3, `unrealized_pnl_RUR`).
 5. **Период отчёта ≠ неделя.** Отчёт №9 охватывает 39 дней; старый промпт называл период «неделей».
+6. **Промпт голосового ввода в коде устарел (19.11.2026).** `PromptTemplates.VOICE_NER` содержит модель до v0.9 (`update_planned`, `target_hint`, `confidence_score`); рабочий `AI Workspace/Voice/Prompts/voice_ner_prompt.txt` (изменён вручную 05.09.2026) — actual-only. `updateVoiceNerPromptInDrive()` перезаписала бы рабочий промпт устаревшим. Функция не в меню; удаляется в фазе 4. Handbook §9 уже называет файл в Drive единственным источником — код этому не соответствовал.
 
 ## 16. Что изменить в Handbook при выпуске v1.0
 

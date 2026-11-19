@@ -1,4 +1,3 @@
-
 /**
  * ============================================================================
  * Family Budget Automation
@@ -9,6 +8,7 @@
  * ============================================================================
  */
 
+
 /**
  * Возвращает активную таблицу.
  *
@@ -17,6 +17,7 @@
 function getSpreadsheet_() {
   return SpreadsheetApp.getActiveSpreadsheet();
 }
+
 
 /**
  * Возвращает лист по имени.
@@ -28,6 +29,7 @@ function getSheet_(sheetName) {
   return getSpreadsheet_().getSheetByName(sheetName);
 }
 
+
 /**
  * Возвращает последний заполненный номер строки.
  *
@@ -37,6 +39,7 @@ function getSheet_(sheetName) {
 function getLastRow_(sheet) {
   return sheet.getLastRow();
 }
+
 
 /**
  * Возвращает текущую дату и время в формате проекта.
@@ -51,6 +54,7 @@ function getTimestamp_() {
   );
 }
 
+
 /**
  * Показывает информационное сообщение пользователю.
  *
@@ -62,6 +66,7 @@ function showInfo_(message) {
   showMessage_('Информация', message);
 }
 
+
 /**
  * Показывает сообщение об ошибке пользователю.
  *
@@ -72,6 +77,7 @@ function showInfo_(message) {
 function showError_(message) {
   showMessage_('Ошибка', message);
 }
+
 
 /**
  * Универсальный показ сообщения.
@@ -93,6 +99,7 @@ function showMessage_(title, message) {
   }
 }
 
+
 /**
  * Копирует оформление диапазона.
  *
@@ -100,6 +107,7 @@ function showMessage_(title, message) {
  * @param {SpreadsheetApp.Range} targetRange
  */
 function copyCellStyle_(sourceRange, targetRange) {
+
 
   targetRange.setBackgrounds(sourceRange.getBackgrounds());
   targetRange.setFontColors(sourceRange.getFontColors());
@@ -109,30 +117,38 @@ function copyCellStyle_(sourceRange, targetRange) {
   targetRange.setFontStyles(sourceRange.getFontStyles());
   targetRange.setFontLines(sourceRange.getFontLines());
 
+
   targetRange.setHorizontalAlignments(
     sourceRange.getHorizontalAlignments()
   );
+
 
   targetRange.setVerticalAlignments(
     sourceRange.getVerticalAlignments()
   );
 
+
   targetRange.setNumberFormats(sourceRange.getNumberFormats());
+
 
   targetRange.setWrapStrategies(
     sourceRange.getWrapStrategies()
   );
 
+
   targetRange.setTextDirections(
     sourceRange.getTextDirections()
   );
+
 
   targetRange.setTextRotations(
     sourceRange.getTextRotations()
   );
 
+
   targetRange.setNotes(sourceRange.getNotes());
 }
+
 
 /**
  * Возвращает количество используемых столбцов на листе.

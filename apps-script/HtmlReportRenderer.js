@@ -1,4 +1,3 @@
-
 /**
  * Family Budget Automation - HtmlReportRenderer.gs
  * Compatible with AI Report Schema v1.0/v1.1 and HTML Template v1.1
@@ -635,6 +634,7 @@ function renderMetricCards_(value) {
 
 }
 
+
 function renderInsightCards_(value) {
 
   return renderCards_(value, function(item) {
@@ -643,6 +643,7 @@ function renderInsightCards_(value) {
 
 }
 
+
 function renderRecommendationCards_(value) {
 
   return renderCards_(value, function(item) {
@@ -650,6 +651,7 @@ function renderRecommendationCards_(value) {
   });
 
 }
+
 
 function renderPersonCards_(value) {
 

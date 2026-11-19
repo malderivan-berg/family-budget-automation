@@ -1,4 +1,3 @@
-
 /**
  * ============================================================================
  * Family Budget Automation
@@ -55,3 +54,5 @@ function assertReportIdEntered_(reportId) {
     throw new Error(MSG_NOTHING_ENTERED);
   }
 }
+
+
