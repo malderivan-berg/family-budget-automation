@@ -6,16 +6,16 @@
 
 | | |
 |---|---|
-| Работающая система | v0.9 Stable — см. [`docs/HANDBOOK_v0.9.md`](docs/HANDBOOK_v0.9.md) |
-| Миграция | v1.0 — см. [`docs/TARGET_ARCHITECTURE_v1.0.md`](docs/TARGET_ARCHITECTURE_v1.0.md) (источник истины до выпуска Handbook v1.0) |
+| Работающая система | v1.0 Stable — см. [`docs/HANDBOOK_v1.0.md`](docs/HANDBOOK_v1.0.md) |
+| История миграции v0.9 → v1.0 | [`docs/TARGET_ARCHITECTURE_v1.0.md`](docs/TARGET_ARCHITECTURE_v1.0.md) (завершена 19.11.2026) |
 | Рабочие данные | Google Sheets `data v1.1`; Stage 3 — `data v1.2 migration baseline` |
 
 ## Структура репозитория
 
 ```text
 apps-script/   код Apps Script, привязанного к таблице data v1.1
-agent/         агент отчёта: инструкция, шаблон HTML, скрипты сверки (фаза 1)
-docs/          Handbook, целевая архитектура, архивные спецификации
+agent/         агент отчёта: инструкция, шаблон HTML, скрипты сборки и сверки
+docs/          Handbook v1.0, история миграции, спецификации; archive/ — прежние версии
 CHANGELOG.md   история изменений
 ```
 

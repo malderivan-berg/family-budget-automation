@@ -1,12 +1,14 @@
 # CHANGELOG
 
-## [Unreleased] — миграция на v1.0
+## [1.0] — 2026-11-19 — Stable
 
-Пилот 19.11.2026: сквозной прогон v1.0 на отчёте №9 в тестовом режиме — отчёт доставлен, 143 числа сверены без расхождений.
+Отчёт строит агент Claude по выгрузке из Google Sheets; все числа — из таблицы, тексты сверяются программно. Доставка — Nodul, контроль — Apps Script. Подробности — `docs/HANDBOOK_v1.0.md`.
+
+Проверка: пилот на отчёте №9 (143 числа без расхождений), отчёт №10 в тестовом режиме (137 чисел), повторная отправка; затем доставка обоим.
 
 ### Added
 - Репозиторий проекта.
-- `docs/HANDBOOK_v0.9.md` — Project Handbook v0.9 (перенесён из docx).
+- `docs/HANDBOOK_v1.0.md` — Project Handbook v1.0. Handbook v0.9 (перенесён из docx) — в `docs/archive/`.
 - `docs/TARGET_ARCHITECTURE_v1.0.md` — целевая архитектура v1.0, черновик 0.2.
 - `apps-script/` — исходный код v0.9 (15 модулей, снимок 06.09.2026).
 - `docs/VOICE_TRANSACTION_BATCH_SCHEMA_v2.0.md`, `docs/STAGE3_SPECIFICATION_v0.2.md` — действующие спецификации.
@@ -33,4 +35,4 @@
 ## [0.9] — 2026-09-06 — Stable
 
 - Голосовой ввод фактических операций через Telegram (Voice Transaction Batch Schema v2.0): actual-only, idempotency, recovery, Outbox + notification_sent ACK.
-- Подробности — `docs/HANDBOOK_v0.9.md`, история документа.
+- Подробности — `docs/archive/HANDBOOK_v0.9.md`, история документа.
