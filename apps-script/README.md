@@ -1,6 +1,8 @@
 # Apps Script — Family Budget Automation
 
-Код проекта Apps Script, привязанного к таблице `Data/data v1.1`.
+Код проекта Apps Script **Family Office Report v0.9.1**, привязанного к таблице `Data/data v1.1`. Это единственный проект таблицы: в нём триггер голосового ввода `runProcessVoiceCallbacks`, в него отправляет код clasp.
+
+Правило: одна таблица — один привязанный проект. Версии хранятся в git, а не копиями проекта: у каждой копии свой `onOpen`, и меню «Family Budget» строит случайная из них. Старые копии v0.3.1–v0.9 удалены 19.11.2026; код v0.9 — в истории git и в Source Code v0.9. Проект таблицы `data v1.2 migration baseline` — отдельный (Family Office Report 0.9.2, триггер `runScheduledMarketDataUpdate_`).
 
 Источник — живой проект, скачанный `clasp clone` 19.11.2026 (код v0.9, после 06.09.2026 не менялся). Файлы лежат с расширением `.js`, как их скачивает и отправляет clasp; в редакторе Apps Script они называются так же, без расширения.
 
