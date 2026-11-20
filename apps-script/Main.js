@@ -201,7 +201,9 @@ function runTestReportDataExport() {
       'report_id = ' + data.report_id + '\n' +
       'Период: ' + data.period_start + ' — ' + data.period_end +
       ' (' + data.duration_days + ' дн.)\n' +
-      'Строк: ' + data.rows.length + '\n' +
+      'Строк: ' + Object.keys(data.tables).map(function(key) {
+        return key + ' ' + data.tables[key].rows.length;
+      }).join(', ') + '\n' +
       'Получатели: ' + data.delivery.users.length + '\n\n' +
       'Файл: ' + file.getUrl()
     );

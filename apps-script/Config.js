@@ -153,6 +153,30 @@ const REPORT_SHEETS = {
 };
 
 // -----------------------------------------------------------------------------
+// Выгрузка report_data schema 2.0 (data v1.2) — см. Export.gs
+// Каждая таблица — строки листа, колонки читаются по заголовкам строки 1.
+//   filter 'report' — строки с report_id отчёта; 'active' — active = TRUE.
+//   required — без строк выгрузка не создаётся; иначе таблица может быть пустой.
+// -----------------------------------------------------------------------------
+const REPORT_DATA = {
+  REPORT_ID_HEADER: 'report_id',
+  ACTIVE_HEADER: 'active',
+
+  // Таблица, из первой строки которой берутся даты и длительность периода
+  PERIOD_TABLE: 'calculations',
+
+  TABLES: [
+    { key: 'metrics',        sheet: 'Показатели',        filter: 'active', required: true },
+    { key: 'calculations',   sheet: 'Расчеты',           filter: 'report', required: true },
+    { key: 'reconciliation', sheet: 'Сверка капитала',   filter: 'report', required: true },
+    { key: 'budget',         sheet: 'Исполнение плана',  filter: 'report', required: false },
+    { key: 'history',        sheet: 'История',           filter: 'report', required: false },
+    { key: 'market',         sheet: 'Рыночный контекст', filter: 'report', required: false },
+    { key: 'context',        sheet: 'Контекст отчетов',  filter: 'report', required: false }
+  ]
+};
+
+// -----------------------------------------------------------------------------
 // Перенос данных data v1.1 → data v1.2 (Stage 3, шаг 5.4).
 // Удаляется вместе с MigrationManager.gs после переключения на v1.2.
 // -----------------------------------------------------------------------------
@@ -307,8 +331,9 @@ const VOICE_MESSAGES = {
 // См. docs/TARGET_ARCHITECTURE_v1.0.md
 // -----------------------------------------------------------------------------
 const REPORT_AGENT = {
-  // true — отчёт доставляется только пользователю ALERT_USER_NAME (пилот)
-  TEST_MODE: false,
+  // true — отчёт доставляется только пользователю ALERT_USER_NAME (пилот).
+  // data v1.2: true до переключения (шаг 5.7)
+  TEST_MODE: true,
 
   // Через сколько минут после запуска проверять доставку
   DELIVERY_CHECK_MINUTES: 30,
@@ -316,8 +341,8 @@ const REPORT_AGENT = {
   // Пользователь из TELEGRAM.USERS, которому приходят предупреждения
   ALERT_USER_NAME: 'Husband',
 
-  // Контракт выгрузки report_data
-  DATA_SCHEMA_VERSION: '1.0',
+  // Контракт выгрузки report_data (2.0 — листы data v1.2, см. REPORT_DATA)
+  DATA_SCHEMA_VERSION: '2.0',
 
   // Имена файлов; {id} заменяется на report_id
   FILES: {

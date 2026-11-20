@@ -78,9 +78,21 @@ def allowed_sets(data):
         for _, v, is_pct in nums:
             (pct if is_pct else plain).add(round(v, 6))
 
-    for row in data["rows"]:
-        for v in row.get("display", {}).values():
-            add_text(v)
+    if str(data.get("schema_version")) == "2.0":
+        # все таблицы выгрузки; даты — из raw (YYYY-MM-DD), как их печатает шаблон
+        for table in data["tables"].values():
+            for row in table.get("rows", []):
+                for v in row.get("display", {}).values():
+                    add_text(v)
+                for v in row.get("raw", {}).values():
+                    m = ISO_RE.fullmatch(v) if isinstance(v, str) else None
+                    if m:
+                        y, mo, d = m.groups()
+                        dates.add(f"{d}.{mo}.{y}")
+    else:
+        for row in data["rows"]:
+            for v in row.get("display", {}).values():
+                add_text(v)
     plain.add(round(float(data["report_id"]), 6))
     plain.add(round(float(data["duration_days"]), 6))
     for key in ("period_start", "period_end"):

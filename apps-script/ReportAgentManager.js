@@ -100,6 +100,13 @@ function startReportAgent_(reportId, pilot) {
   };
   saveReportAgentState_(state);
 
+  if (pilot) {
+    // Пилот повторяет уже доставленный отчёт: старый ответ Nodul с тем же
+    // именем уходит в корзину, чтобы проверка доставки прочитала новый.
+    deleteFileByName_(getTelegramInboxFolder_(),
+      reportFileName_(REPORT_AGENT.FILES.TELEGRAM_RESPONSE, reportId));
+  }
+
   exportForState_(state);
   fireForState_(state);
   return state;

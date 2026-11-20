@@ -19,6 +19,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 AGENT_DIR = os.path.dirname(HERE)
+# report_v2 импортирует этот модуль по имени; при запуске скриптом это должен
+# быть тот же модуль, иначе его InputError не перехватывается в main()
+sys.modules.setdefault("render_report", sys.modules[__name__])
 TEMPLATE_VERSION = "1.1"
 
 TONES = {"positive", "negative", "neutral"}
@@ -429,12 +432,17 @@ def main():
     a = ap.parse_args()
     try:
         data = json.load(open(a.data, encoding="utf-8"))
-        if data.get("schema") != "report_data" or str(data.get("schema_version")) != "1.0":
-            raise InputError("ожидается report_data schema_version 1.0")
+        version = str(data.get("schema_version"))
+        if data.get("schema") != "report_data" or version not in ("1.0", "2.0"):
+            raise InputError("ожидается report_data schema_version 1.0 или 2.0")
         analysis = json.load(open(a.analysis, encoding="utf-8"))
-        mapping = json.load(open(a.metrics, encoding="utf-8"))
         css = open(a.css, encoding="utf-8").read()
-        doc = render(data, analysis, mapping, css, a.instruction_version)
+        if version == "2.0":
+            import report_v2
+            doc = report_v2.render(data, analysis, css, a.instruction_version)
+        else:
+            mapping = json.load(open(a.metrics, encoding="utf-8"))
+            doc = render(data, analysis, mapping, css, a.instruction_version)
     except (InputError, KeyError, ValueError) as e:
         print(f"RENDER ERROR: {e}", file=sys.stderr)
         sys.exit(2)

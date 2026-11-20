@@ -3,8 +3,10 @@
  * Family Budget Automation
  * Export.gs
  * ----------------------------------------------------------------------------
- * Выгрузка отчёта report_data_N.json для агента отчёта.
- * Контракт: docs/TARGET_ARCHITECTURE_v1.0.md, раздел 5.1.
+ * Выгрузка отчёта report_data_N.json для агента отчёта — schema 2.0 (data v1.2).
+ * Листы и колонки задаёт REPORT_DATA (Config.gs); колонки читаются по
+ * заголовкам, поэтому новая колонка в листе попадает в выгрузку без правки кода.
+ * Контракт: docs/REPORT_DATA_2.0.md.
  * ============================================================================
  */
 
@@ -28,7 +30,7 @@ function exportReportData_(reportId, folder) {
 }
 
 /**
- * Собирает объект report_data по строкам листа «Расчеты».
+ * Собирает объект report_data: таблицы REPORT_DATA.TABLES по отчёту.
  *
  * raw     — getValues(): числа числами, даты строками YYYY-MM-DD;
  * display — getDisplayValues(): строки так, как их форматирует Sheets.
@@ -38,48 +40,15 @@ function exportReportData_(reportId, folder) {
  * @returns {Object}
  */
 function buildReportData_(reportId) {
-  const sheet = getSheet_(SOURCE_SHEET_NAME);
-  assertSheetExists_(sheet, SOURCE_SHEET_NAME);
-  assertSheetHasData_(sheet);
-
-  const lastRow = getLastRow_(sheet);
-  const lastColumn = getLastColumn_(sheet);
+  const spreadsheet = getSpreadsheet_();
   const tz = Session.getScriptTimeZone();
 
-  const headers = sheet
-    .getRange(1, 1, 1, lastColumn)
-    .getValues()[0]
-    .map(function(h) { return String(h).trim(); });
-
-  const range = sheet.getRange(
-    START_ROW,
-    START_COL,
-    lastRow - START_ROW + 1,
-    lastColumn
-  );
-  const values = range.getValues();
-  const displays = range.getDisplayValues();
-
-  const rows = [];
-  values.forEach(function(row, i) {
-    if (String(row[REPORT_ID_COLUMN - 1]).trim() !== String(reportId)) {
-      return;
-    }
-    const raw = {};
-    const display = {};
-    headers.forEach(function(header, c) {
-      if (!header) {
-        return;
-      }
-      raw[header] = toJsonValue_(row[c], tz);
-      display[header] = String(displays[i][c]);
-    });
-    rows.push({ raw: raw, display: display });
+  const tables = {};
+  REPORT_DATA.TABLES.forEach(function(spec) {
+    tables[spec.key] = readReportTable_(spreadsheet, spec, reportId, tz);
   });
 
-  assertReportFound_(rows, reportId);
-
-  const first = rows[0].raw;
+  const first = tables[REPORT_DATA.PERIOD_TABLE].rows[0].raw;
   if (!isIsoDate_(first.period_start) || !isIsoDate_(first.period_end)) {
     throw new Error(
       'report_data: в отчёте ' + reportId +
@@ -89,8 +58,6 @@ function buildReportData_(reportId) {
   if (typeof first.duration_days !== 'number') {
     throw new Error('report_data: в отчёте ' + reportId + ' нет duration_days');
   }
-
-  const spreadsheet = getSpreadsheet_();
 
   return {
     schema: 'report_data',
@@ -102,16 +69,91 @@ function buildReportData_(reportId) {
     duration_days: first.duration_days,
     source: {
       spreadsheet_id: spreadsheet.getId(),
-      spreadsheet: spreadsheet.getName(),
-      sheet: SOURCE_SHEET_NAME
+      spreadsheet: spreadsheet.getName()
     },
-    columns: headers.filter(function(h) { return h; }),
-    rows: rows,
+    tables: tables,
     delivery: {
       users: getDeliveryUsers_(),
       caption: buildDeliveryCaption_(reportId, first.period_start, first.period_end)
     }
   };
+}
+
+/**
+ * Читает строки одного листа для выгрузки.
+ *
+ * @param {SpreadsheetApp.Spreadsheet} spreadsheet
+ * @param {{key: string, sheet: string, filter: string, required: boolean}} spec
+ * @param {number|string} reportId
+ * @param {string} tz
+ * @returns {{sheet: string, columns: string[], rows: Object[]}}
+ */
+function readReportTable_(spreadsheet, spec, reportId, tz) {
+  const sheet = spreadsheet.getSheetByName(spec.sheet);
+  assertSheetExists_(sheet, spec.sheet);
+
+  const lastRow = getLastRow_(sheet);
+  const lastColumn = getLastColumn_(sheet);
+  const headers = sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .map(function(h) { return String(h).trim(); });
+
+  const filterHeader = spec.filter === 'report'
+    ? REPORT_DATA.REPORT_ID_HEADER
+    : REPORT_DATA.ACTIVE_HEADER;
+  const filterIndex = headers.indexOf(filterHeader);
+  if (filterIndex < 0) {
+    throw new Error(
+      'report_data: на листе «' + spec.sheet + '» нет колонки ' + filterHeader
+    );
+  }
+
+  const rows = [];
+  if (lastRow >= START_ROW) {
+    const range = sheet.getRange(START_ROW, 1, lastRow - START_ROW + 1, lastColumn);
+    const values = range.getValues();
+    const displays = range.getDisplayValues();
+
+    values.forEach(function(row, i) {
+      if (!rowMatchesFilter_(row[filterIndex], spec.filter, reportId)) {
+        return;
+      }
+      const raw = {};
+      const display = {};
+      headers.forEach(function(header, c) {
+        if (!header) {
+          return;
+        }
+        raw[header] = toJsonValue_(row[c], tz);
+        display[header] = String(displays[i][c]);
+      });
+      rows.push({ raw: raw, display: display });
+    });
+  }
+
+  if (spec.required) {
+    assertReportFound_(rows, reportId + ', лист «' + spec.sheet + '»');
+  }
+
+  return {
+    sheet: spec.sheet,
+    columns: headers.filter(function(h) { return h; }),
+    rows: rows
+  };
+}
+
+/**
+ * @param {*} value значение колонки фильтра
+ * @param {string} filter 'report' | 'active'
+ * @param {number|string} reportId
+ * @returns {boolean}
+ */
+function rowMatchesFilter_(value, filter, reportId) {
+  if (filter === 'report') {
+    return String(value).trim() === String(reportId);
+  }
+  return String(value).trim().toUpperCase() === 'TRUE';
 }
 
 /**
