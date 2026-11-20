@@ -17,6 +17,10 @@ def main():
     ap.add_argument("--metrics", default=os.path.join(AGENT_DIR, "metrics_v1.1.json"))
     a = ap.parse_args()
     data = json.load(open(a.data, encoding="utf-8"))
+    if str(data.get("schema_version")) == "2.0":
+        import report_v2
+        print(report_v2.show(data))
+        return
     mapping = json.load(open(a.metrics, encoding="utf-8"))
     by_acc = {r["display"].get("account", "").strip(): r for r in data["rows"]}
     print(f"report_id={data['report_id']}  период {data['period_start']} → {data['period_end']}  "

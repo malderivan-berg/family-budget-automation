@@ -1,0 +1,33 @@
+{
+  "schema": "presentation",
+  "version": "2.0",
+  "note": "Оформление отчёта по report_data 2.0. Названия показателей — из листа «Показатели» (display_name); здесь только порядок блоков и подписи колонок листов, у которых нет справочника. Цифры в подписях запрещены: их проверяет check_numbers.py.",
+  "tiles": ["liquid_assets", "deposits", "investments", "net_real_estate"],
+  "components": ["net_real_estate", "investments", "deposits", "liquid_assets"],
+  "person_rows": ["net_real_estate", "deposits", "investments", "liquid_assets", "idle_cash"],
+  "scopes": {"family": "Семья", "husband": "Муж", "wife": "Жена"},
+  "reconciliation_effects": [
+    {"column": "capital_flow_gap", "label": "Изменение капитала сверх учтённых операций"},
+    {"column": "property_valuation_effect", "label": "Переоценка недвижимости"},
+    {"column": "investment_valuation_effect", "label": "Переоценка инвестиций"},
+    {"column": "debt_principal_effect", "label": "Погашение тела ипотеки"},
+    {"column": "fx_valuation_effect", "label": "Валютная переоценка"},
+    {"column": "other_known_effects", "label": "Прочие известные эффекты"}
+  ],
+  "budget_metrics": ["budget_income", "budget_expense"],
+  "history_metrics": ["net_worth_family", "liquid_assets_family", "deposits_family", "investments_family", "idle_cash_family", "recorded_expense_family"],
+  "market": [
+    {"key": "IMOEX", "label": "Индекс Мосбиржи, пункты", "unit": ""},
+    {"key": "RGBI", "label": "Индекс гособлигаций RGBI, пункты", "unit": ""},
+    {"key": "USD_RUB", "label": "Доллар США", "unit": "₽"},
+    {"key": "CNY_RUB", "label": "Юань", "unit": "₽"},
+    {"key": "CBR_KEY_RATE", "label": "Ключевая ставка ЦБ, % годовых", "unit": ""},
+    {"key": "MOSCOW_HOUSING_MREDC", "label": "Жильё в Москве, индекс Мосбиржи MREDC, ₽ за кв. м", "unit": ""},
+    {"key": "MOSCOW_HOUSING_PRICE_SQM", "label": "Жильё в Москве, Росстат, ₽ за кв. м", "unit": ""},
+    {"key": "SPB_HOUSING_PRICE_SQM", "label": "Жильё в Петербурге, Росстат, ₽ за кв. м", "unit": ""}
+  ],
+  "quality": {
+    "ok": "данные есть", "high": "надёжно", "medium": "приемлемо", "low": "ненадёжно",
+    "no_data": "нет данных", "missing": "нет данных", "stale": "данные устарели", "error": "ошибка источника"
+  }
+}
