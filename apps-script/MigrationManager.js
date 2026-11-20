@@ -29,10 +29,14 @@ function migrateFromV11_(apply) {
 
   try {
     const source = SpreadsheetApp.openById(MIGRATION_V11.SOURCE_SPREADSHEET_ID);
+    const toTargetDate = buildDateConverter_(
+      source.getSpreadsheetTimeZone(),
+      SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone()
+    );
     const result = {
       apply: apply,
-      balances: migrateBalances_(source, apply),
-      calendar: migrateCalendar_(source, apply),
+      balances: migrateBalances_(source, apply, toTargetDate),
+      calendar: migrateCalendar_(source, apply, toTargetDate),
       reports: null
     };
 
@@ -55,9 +59,10 @@ function migrateFromV11_(apply) {
  *
  * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} source data v1.1
  * @param {boolean} apply
+ * @param {function(Date): Date} toTargetDate
  * @returns {Object} { periods: {id: {removed, added}}, unmapped: [] }
  */
-function migrateBalances_(source, apply) {
+function migrateBalances_(source, apply, toTargetDate) {
   const target = getSheet_(MIGRATION_V11.BALANCES_SHEET);
   const src = readMigrationTable_(source.getSheetByName(MIGRATION_V11.BALANCES_SHEET));
   const dst = readMigrationTable_(target);
@@ -106,7 +111,7 @@ function migrateBalances_(source, apply) {
     removeRows.sort(function(a, b) { return b - a; }).forEach(function(rowNumber) {
       target.deleteRow(rowNumber);
     });
-    appendBalanceRows_(target, dst.headers, srcRows, keys);
+    appendBalanceRows_(target, dst.headers, srcRows, keys, toTargetDate);
   }
 
   return { periods: periods, unmapped: [] };
@@ -117,7 +122,7 @@ function migrateBalances_(source, apply) {
  * (remaining_value_RUR) получает формулу первой строки данных в R1C1 —
  * формат листа задают данные, а не код.
  */
-function appendBalanceRows_(sheet, headers, srcRows, keys) {
+function appendBalanceRows_(sheet, headers, srcRows, keys, toTargetDate) {
   const cols = MIGRATION_V11.BALANCE_COLUMNS;
   const width = headers.length;
   const formulasR1C1 = sheet.getRange(2, 1, 1, width).getFormulasR1C1()[0];
@@ -133,7 +138,7 @@ function appendBalanceRows_(sheet, headers, srcRows, keys) {
 
     set(cols.PERIOD, row[cols.PERIOD]);
     set(cols.ACCOUNT_KEY, keys[accountKeyId_(row)]);
-    set(cols.DATE, row[cols.DATE]);
+    set(cols.DATE, toTargetDate(row[cols.DATE]));
     set(cols.OWNER, row[cols.OWNER]);
     set(cols.ACCOUNT_NAME, row[cols.ACCOUNT_NAME]);
     set(cols.VALUE_NATIVE, row[cols.VALUE_RUR]);
@@ -193,7 +198,7 @@ function accountKeyId_(row) {
  * нет в v1.2 (по voice_operation_id или по всем полям), и приводит
  * суммы-тексты v1.2 к числам. Плановые строки без суммы не переносятся.
  */
-function migrateCalendar_(source, apply) {
+function migrateCalendar_(source, apply, toTargetDate) {
   const cols = MIGRATION_V11.CALENDAR_COLUMNS;
   const target = getSheet_(MIGRATION_V11.CALENDAR_SHEET);
   const src = readMigrationTable_(source.getSheetByName(MIGRATION_V11.CALENDAR_SHEET));
@@ -225,6 +230,9 @@ function migrateCalendar_(source, apply) {
         return dst.headers.map(function(name) {
           if (name === cols.AMOUNT) {
             return parseMigrationNumber_(row[name]);
+          }
+          if (name === cols.DATE) {
+            return toTargetDate(row[name]);
           }
           return row[name] === undefined ? '' : row[name];
         });
@@ -312,6 +320,25 @@ function readMigrationTable_(sheet) {
   });
 
   return { headers: headers, rows: rows };
+}
+
+/**
+ * Дата без времени из таблицы-источника → та же календарная дата в часовом
+ * поясе таблицы-приёмника (полночь). Без этого полночь по Москве в таблице
+ * с другим поясом превращается в «вчера, 14:00».
+ *
+ * @param {string} sourceTimeZone
+ * @param {string} targetTimeZone
+ * @returns {function(*): *}
+ */
+function buildDateConverter_(sourceTimeZone, targetTimeZone) {
+  return function(value) {
+    if (!(value instanceof Date)) {
+      return value;
+    }
+    const day = Utilities.formatDate(value, sourceTimeZone, 'yyyy-MM-dd');
+    return Utilities.parseDate(day, targetTimeZone, 'yyyy-MM-dd');
+  };
 }
 
 /**
