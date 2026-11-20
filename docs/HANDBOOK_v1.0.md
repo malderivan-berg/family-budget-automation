@@ -1340,7 +1340,7 @@ Proposed Draft документы будущей архитектуры не с�
 
 1. ✅ Сценарий 2 (Telegram Report Sender) работает с `telegram_request_N.json` / `telegram_response_N.json`.
 2. ✅ Сценарий 3 (Voice Input) — без изменений.
-3. ✅ Сценарий 1 (AI Pipeline) отключён.
+3. ✅ Сценарий 1 (AI Pipeline) отключён и перенесён в архивную папку профиля Nodul.
 
 **Голосовой ввод**
 
@@ -1747,7 +1747,7 @@ Family Budget Automation/
 
 | **№** | **Сценарий** | **Триггер** | **Назначение** | **Статус** |
 |---|---|---|---|---|
-| 1 | AI Pipeline | AI Workspace/Job/AI Job Package.txt | Отправка задания в LLM | Отключён в v1.0; удалить после нескольких отчётов |
+| 1 | AI Pipeline | AI Workspace/Job/AI Job Package.txt | Отправка задания в LLM | Отключён в v1.0; хранится в архивной папке профиля Nodul |
 | 2 | Telegram Report Sender | Создание файла в AI Workspace/Telegram/Outbox | Доставка HTML-отчёта в Telegram | Работает (v1.0) |
 | 3 | Voice Input | Telegram webhook (message.voice, callback_query) | Распознавание голоса, NER, подтверждение | Работает (v0.9) |
 
