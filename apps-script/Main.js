@@ -19,6 +19,66 @@ function onOpen() {
 
 
 // ============================================================================
+// РЫНОЧНЫЕ ДАННЫЕ (Stage 3.5) — логика в MarketDataManager.gs
+// ============================================================================
+
+/**
+ * Команда:
+ * обновить raw market data.
+ */
+function runUpdateMarketData() {
+  try {
+    const result =
+      updateMarketData_();
+
+    let message =
+      'Market data update завершен.\n\n' +
+      'Получено observations: ' +
+      result.fetched +
+      '\n' +
+      'Добавлено новых строк: ' +
+      result.appended +
+      '\n' +
+      'Уже существовали: ' +
+      result.skipped +
+      '\n' +
+      'Конфликтов: ' +
+      result.conflicts.length +
+      '\n' +
+      'Ошибок источников: ' +
+      result.errors.length;
+
+    if (
+      result.errors.length > 0
+    ) {
+      message +=
+        '\n\n' +
+        result.errors
+          .map(function(item) {
+            return (
+              item.source +
+              ': ' +
+              item.error
+            );
+          })
+          .join('\n');
+    }
+
+    showInfo_(message);
+
+    return result;
+
+  } catch (error) {
+    showError_(
+      'Ошибка Market Data: ' +
+      error.message
+    );
+
+    throw error;
+  }
+}
+
+// ============================================================================
 // ОТЧЁТНЫЙ КОНВЕЙЕР — публичные точки входа
 // Логика — в ReportAgentManager.gs
 // ============================================================================
@@ -167,6 +227,20 @@ function runTestReportAgentPilot() {
     );
   } catch (error) {
     reportTestResult_('Пилот не запущен: ' + error.message);
+  }
+}
+
+/**
+ * Обслуживание (запуск из редактора): достроить «История», «Сверка капитала»,
+ * «Исполнение плана», «Рыночный контекст» до последнего отчёта «Расчетов».
+ * Безопасно запускать повторно.
+ */
+function runSyncReportSheets() {
+  try {
+    const added = syncReportSheets_();
+    reportTestResult_('Листы отчёта синхронизированы. Добавлено строк: ' + JSON.stringify(added));
+  } catch (error) {
+    reportTestResult_('Синхронизация не выполнена: ' + error.message);
   }
 }
 

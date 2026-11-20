@@ -23,6 +23,7 @@ function createNewReport_() {
   const reportBlock = getLastReportBlock_(sheet);
 
   duplicateReportBlock_(sheet, reportBlock);
+  syncReportSheets_();
 
   return {
     id: reportBlock.reportId + 1,
@@ -136,3 +137,80 @@ function getCurrentReportDate_() {
   );
 }
 
+
+/**
+ * Достраивает листы, зависящие от «Расчетов», до последнего отчёта:
+ * MIRROR — до последней строки «Расчетов», PER_REPORT — блоками до последнего
+ * report_id. Размер блока берётся из данных. Идемпотентна: повторный вызов
+ * ничего не добавляет.
+ *
+ * @returns {Object<string, number>} число добавленных строк по листам
+ */
+function syncReportSheets_() {
+  const mainBlock = getLastReportBlock_(getSheet_(SOURCE_SHEET_NAME));
+  const added = {};
+
+  REPORT_SHEETS.MIRROR.forEach(function(name) {
+    added[name] = syncMirrorSheet_(getSheet_(name), mainBlock.lastRow);
+  });
+
+  REPORT_SHEETS.PER_REPORT.forEach(function(name) {
+    added[name] = syncPerReportSheet_(getSheet_(name), mainBlock.reportId);
+  });
+
+  return added;
+}
+
+/**
+ * Дописывает строки листа-зеркала до targetLastRow копией последней строки:
+ * её формулы ссылаются на ту же строку «Расчетов» и сдвигаются при копировании.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @param {number} targetLastRow последняя строка «Расчетов»
+ * @returns {number} добавлено строк
+ */
+function syncMirrorSheet_(sheet, targetLastRow) {
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow > targetLastRow) {
+    throw new Error('Лист «' + sheet.getName() + '» длиннее «' + SOURCE_SHEET_NAME +
+      '»: ' + lastRow + ' строк против ' + targetLastRow + '.');
+  }
+
+  const missing = targetLastRow - lastRow;
+  if (missing === 0) {
+    return 0;
+  }
+
+  const columns = sheet.getLastColumn();
+  sheet.insertRowsAfter(lastRow, missing);
+  sheet.getRange(lastRow, 1, 1, columns)
+    .copyTo(sheet.getRange(lastRow + 1, 1, missing, columns));
+
+  return missing;
+}
+
+/**
+ * Дописывает блоки отчётов до lastReportId копией последнего блока.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @param {number} lastReportId последний report_id «Расчетов»
+ * @returns {number} добавлено строк
+ */
+function syncPerReportSheet_(sheet, lastReportId) {
+  let block = getLastReportBlock_(sheet);
+
+  if (block.reportId > lastReportId) {
+    throw new Error('В листе «' + sheet.getName() + '» есть отчёт №' + block.reportId +
+      ', которого нет в «' + SOURCE_SHEET_NAME + '».');
+  }
+
+  let added = 0;
+  while (block.reportId < lastReportId) {
+    duplicateReportBlock_(sheet, block);
+    added += block.rowCount;
+    block = getLastReportBlock_(sheet);
+  }
+
+  return added;
+}

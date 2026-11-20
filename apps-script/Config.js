@@ -36,6 +36,100 @@ const CALENDAR_COLUMNS = {
 };
 
 // -----------------------------------------------------------------------------
+// Market Data — Stage 3.5
+// -----------------------------------------------------------------------------
+const MARKET_DATA = {
+  SHEET_NAME: 'Рынки',
+
+  // 84-day report history + небольшой запас.
+  LOOKBACK_DAYS: 100,
+
+  QUALITY_OK: 'ok',
+
+  TRIGGER: {
+    HOUR: 8
+  },
+
+  SOURCES: {
+    MOEX: 'MOEX ISS',
+    CBR_FX: 'CBR XML',
+    CBR_KEY_RATE: 'CBR DailyInfo',
+    ROSSTAT_HOUSING: 'Rosstat'
+  },
+
+  MOEX: {
+    BASE_URL:
+      'https://iss.moex.com/iss/history/engines/stock/markets/index/securities/',
+
+    SECURITIES: {
+      IMOEX: 'IMOEX',
+      RGBI: 'RGBI',
+      MREDC: 'MREDC'
+    }
+  },
+
+  CBR: {
+    FX_URL:
+      'https://www.cbr.ru/scripts/XML_dynamic.asp',
+
+    SOAP_URL:
+      'https://www.cbr.ru/DailyInfoWebServ/DailyInfo.asmx',
+
+    // Ключевая ставка существует как официальный ряд с 17.09.2013.
+    KEY_RATE_START: '2013-09-17',
+
+    CURRENCIES: {
+      USD_RUB: {
+        code: 'R01235',
+        unit: 'RUB_per_USD'
+      },
+
+      CNY_RUB: {
+        code: 'R01375',
+        unit: 'RUB_per_CNY'
+      }
+    }
+  },
+
+  // Quarterly official housing benchmarks.
+  //
+  // Источник значений: официальный Росстат.
+  // Получение значений controlled manual, потому что автоматический
+  // UrlFetchApp access к Rosstat сейчас не является надежным.
+  //
+  // ВАЖНО:
+  // - market_key не менять;
+  // - date observation = последний календарный день квартала;
+  // - published_at = фактическая дата официальной публикации Росстата;
+  // - fetched_at назначает Apps Script при первом успешном импорте.
+  ROSSTAT: {
+    HOUSING_UNIT: 'RUB_per_m2',
+
+    HOUSING_BENCHMARKS: {
+      MOSCOW: {
+        marketKey: 'MOSCOW_HOUSING_PRICE_SQM',
+        label: 'Москва'
+      },
+
+      SPB: {
+        marketKey: 'SPB_HOUSING_PRICE_SQM',
+        label: 'Санкт-Петербург'
+      }
+    }
+  },
+
+  FRESHNESS_DAYS: {
+    IMOEX: 7,
+    RGBI: 7,
+    USD_RUB: 7,
+    CNY_RUB: 7,
+
+    // MREDC публикуется еженедельно.
+    MOSCOW_HOUSING_MREDC: 14
+  }
+};
+
+// -----------------------------------------------------------------------------
 // Menu
 // -----------------------------------------------------------------------------
 const MENU_NAME = 'Family Budget';
@@ -44,6 +138,19 @@ const MENU_NAME = 'Family Budget';
 // Report
 // -----------------------------------------------------------------------------
 const REPORT_ID_COLUMN = 1; // Колонка A
+
+// -----------------------------------------------------------------------------
+// Листы с блоком строк на каждый отчёт (data v1.2, Stage 3)
+// Новый отчёт копирует последний блок «Расчетов»; эти листы достраиваются
+// до последнего отчёта — см. syncReportSheets_() в Reports.gs
+// -----------------------------------------------------------------------------
+const REPORT_SHEETS = {
+  // Строка N повторяет строку N листа SOURCE_SHEET_NAME
+  MIRROR: ['История'],
+
+  // Блок строк на каждый report_id; колонка A — report_id
+  PER_REPORT: ['Сверка капитала', 'Исполнение плана', 'Рыночный контекст']
+};
 
 // -----------------------------------------------------------------------------
 // Messages
