@@ -245,6 +245,48 @@ function runSyncReportSheets() {
 }
 
 /**
+ * Перенос v1.1 → v1.2 (запуск из редактора проекта таблицы v1.2), пробный
+ * режим: показывает план, ничего не записывает.
+ */
+function runMigrateFromV11DryRun() {
+  runMigration_(false);
+}
+
+/**
+ * Перенос v1.1 → v1.2 (запуск из редактора проекта таблицы v1.2): записывает
+ * «Остатки» и «Календарь», достраивает блоки отчётов. Повторный запуск безопасен.
+ */
+function runMigrateFromV11() {
+  runMigration_(true);
+}
+
+function runMigration_(apply) {
+  try {
+    const result = migrateFromV11_(apply);
+    const lines = [apply ? 'Перенос выполнен.' : 'Пробный перенос (без записи).'];
+
+    if (result.balances.unmapped.length > 0) {
+      lines.push('Нет account_key для счетов: ' + result.balances.unmapped.join(', ') +
+        '. Добавьте их в MIGRATION_V11.NEW_ACCOUNT_KEYS; ничего не записано.');
+    }
+    Object.keys(result.balances.periods).forEach(function(id) {
+      const p = result.balances.periods[id];
+      lines.push('Остатки, период ' + id + ': удалить ' + p.removed + ', добавить ' + p.added +
+        ', сохранить строк нереализованной прибыли ' + p.keptUnrealized);
+    });
+    lines.push('Календарь: добавить операций ' + result.calendar.added +
+      ', исправить сумм-текстов ' + result.calendar.normalizedAmounts);
+    if (result.reports) {
+      lines.push('Созданы отчёты: ' + (result.reports.created.join(', ') || 'нет') +
+        '; синхронизация: ' + JSON.stringify(result.reports.sync));
+    }
+    reportTestResult_(lines.join('\n'));
+  } catch (error) {
+    reportTestResult_('Перенос не выполнен: ' + error.message);
+  }
+}
+
+/**
  * Итог тестовой функции — в журнал выполнения редактора и всплывающей
  * подсказкой в таблице. Не блокирует выполнение: диалог showInfo_ при
  * запуске из редактора ждёт «ОК» во вкладке таблицы, и запуск «висит».
