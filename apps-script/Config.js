@@ -177,60 +177,6 @@ const REPORT_DATA = {
 };
 
 // -----------------------------------------------------------------------------
-// Перенос данных data v1.1 → data v1.2 (Stage 3, шаг 5.4).
-// Удаляется вместе с MigrationManager.gs после переключения на v1.2.
-// -----------------------------------------------------------------------------
-const MIGRATION_V11 = {
-  // ID таблицы data v1.1 — идентификатор, не секрет
-  SOURCE_SPREADSHEET_ID: '15x5pS4fRFb-gQZaxtrPlc9SZvFPyaBE_xKsfaHDBhsY',
-
-  BALANCES_SHEET: 'Остатки',
-  CALENDAR_SHEET: 'Календарь',
-
-  // Периоды v1.1 начиная с этого переносятся; более ранние в v1.2 выверены
-  FIRST_PERIOD_ID: 10,
-
-  // Календарь v1.2 выверен по эту дату включительно
-  CALENDAR_BASELINE_END: '2026-09-08',
-
-  DEFAULT_CURRENCY: 'RUB',
-  VALUE_ROLE_BALANCE: 'balance',
-  VALUE_ROLE_UNREALIZED: 'unrealized_pnl',
-
-  // Счета, которых нет в v1.2: «владелец|счёт» → account_key
-  NEW_ACCOUNT_KEYS: {
-    'Жена|АБ_депозит_3': 'wife_ab_deposit_3',
-    'Муж|ТБ_ТТФ': 'husband_tb_ttf'
-  },
-
-  BALANCE_COLUMNS: {
-    PERIOD: 'period_id',
-    ACCOUNT_KEY: 'account_key',
-    DATE: 'date',
-    OWNER: 'owner',
-    ACCOUNT_NAME: 'account_name',
-    VALUE_NATIVE: 'value_native',
-    VALUE_RUR: 'remaining_value_RUR',
-    CURRENCY: 'currency',
-    FX_RATE: 'fx_rate_RUR',
-    VALUE_ROLE: 'value_role'
-  },
-
-  // Колонки «Остатков», которые переносятся из v1.1 как есть
-  COPIED_COLUMNS: ['interest_rate', 'bank_name', 'account_type',
-    'account_category1', 'account_category2', 'comment'],
-
-  CALENDAR_COLUMNS: {
-    DATE: 'date',
-    OWNER: 'owner',
-    AMOUNT: 'actual_value_RUR',
-    TYPE: 'type',
-    COMMENT: 'comment',
-    VOICE_ID: 'voice_operation_id'
-  }
-};
-
-// -----------------------------------------------------------------------------
 // Messages
 // -----------------------------------------------------------------------------
 const MSG_NO_DATA = 'Нет данных для обработки.';
@@ -331,9 +277,8 @@ const VOICE_MESSAGES = {
 // См. docs/TARGET_ARCHITECTURE_v1.0.md
 // -----------------------------------------------------------------------------
 const REPORT_AGENT = {
-  // true — отчёт доставляется только пользователю ALERT_USER_NAME (пилот).
-  // data v1.2: true до переключения (шаг 5.7)
-  TEST_MODE: true,
+  // true — отчёт доставляется только пользователю ALERT_USER_NAME (пилот)
+  TEST_MODE: false,
 
   // Через сколько минут после запуска проверять доставку
   DELIVERY_CHECK_MINUTES: 30,
