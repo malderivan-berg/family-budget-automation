@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [QA architecture audit] — 2026-11-22 — Proposed
+
+- Изучены Nodul Stable Pilot JSON, рабочая инструкция Claude 2.1, `render_check.py`, ReportAgentManager и Handbook. Выпущен [аудит перехода Pilot → Production](docs/PILOT_TO_PRODUCTION_QA_AUDIT_2026-11-22.md).
+- Рекомендовано **не переносить** тестовые N00–N06 и Outlook/Gmail/Work в production. Минимальный L2-маршрут: сначала проверить наличие Chromium в среде Claude, затем расширить `render_check.py` до пяти ширин и испытать обязательную проверку в TEST_MODE; основной код и контракты не менялись.
+- Риски: текущий `render_check.py` проверяет только 390px; `exit=3` при отсутствии Playwright допускается инструкцией агента. Ручная повторная отправка из GAS не вызывает агента — учесть при QA rollout.
+
 ## [Pilot documentation] — 2026-11-22 — Development only
 
 - Зафиксирован **FBA Nodul Browser Validator — Stable Pilot v1.0**: 20 функциональных узлов (1 триггер + 19 действий), 21 ребро; checkpoint Nodul 237. Production не изменён.
