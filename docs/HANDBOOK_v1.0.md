@@ -1696,7 +1696,7 @@ Voice pipeline работает только с фактическими опе�
 
 | Задача | Уровень | Зачем |
 |---|---|---|
-| Миграция отчётного агента Claude → ChatGPT Work: универсальный START/REPAIR/VALIDATED протокол, запуск из GAS, адаптация пилота Nodul и тестовая Telegram-доставка | L3 (proposed) | Claude больше недоступен; работоспособный контур Work ↔ Nodul доказан на отчёте №10; см. [план миграции](CHATGPT_WORK_AGENT_MIGRATION_2026-11-22.md) |
+| Миграция агента Claude → ChatGPT Work: протокол Gmail/Drive/Nodul v0.1 подготовлен; следующий шаг — read-only аудит START Relay, затем отдельный синтетический пилот | L3 (proposed) | Новый событийный интерфейс без нарушения report_data и Telegram Request/Response; см. [протокол v0.1](WORK_EVENT_PROTOCOL_v0.1.md) и [план миграции](CHATGPT_WORK_AGENT_MIGRATION_2026-11-22.md) |
 | FBA Nodul Browser Validator: сохранить внутренний бэкап Stable Pilot, проверить восстановимость, подготовить ограниченный пилотный запуск и только затем отдельно согласовать Deploy/Active | L2 | Отдельный QA-контур HTML без изменения рабочей доставки Telegram; см. [протокол пилота](NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md) |
 | RESEND QA в изолированном пилоте (без реальной отправки и изменения production) | L1 | После t10 подтверждён анализом кода, но не runtime-тестом; не блокирует фиксацию Development |
 | Ручная визуальная приёмка HTML вне Nodul (PNG при необходимости) | L2 | Не увеличивать сложность критического браузерного валидатора |

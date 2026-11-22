@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [Work event contract] — 2026-11-22 — Proposed v0.1
+
+- Создана [спецификация универсального event-протокола ChatGPT Work](docs/WORK_EVENT_PROTOCOL_v0.1.md): GAS START marker → Nodul Outlook Relay → Gmail Work, затем Nodul QA REPAIR/VALIDATED и штатный Telegram Sender.
+- Определены `run_id`, имена QA-файлов, правила идемпотентности, предварительные схемы START/QA/result/receipt, точные границы рабочих папок и условия публикации.
+- Ограничения перед rollout: START-мост ещё не испытан, возможны гонки дублированных событий, неизвестны права папок и время QA относительно 30-минутного контроля GAS.
+- Прямой API Workspace Agents описан только как условная альтернатива, а не как подтверждённый интерфейс текущего ChatGPT Work. Никаких runtime-изменений.
+
 ## [Architecture direction corrected] — 2026-11-22 — Target: ChatGPT Work
 
 - Подтверждено ранее принятое 21.11.2026 решение: **ChatGPT Work заменяет недоступного Claude** в роли отчётного агента. Pilot №10 реализовал Work ↔ Drive ↔ Nodul ↔ Outlook/Gmail с REPAIR/VALIDATED; это основа целевой цепочки.
