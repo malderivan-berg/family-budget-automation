@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [Architecture direction corrected] — 2026-11-22 — Target: ChatGPT Work
+
+- Подтверждено ранее принятое 21.11.2026 решение: **ChatGPT Work заменяет недоступного Claude** в роли отчётного агента. Pilot №10 реализовал Work ↔ Drive ↔ Nodul ↔ Outlook/Gmail с REPAIR/VALIDATED; это основа целевой цепочки.
+- Прежний [QA-аудит](docs/PILOT_TO_PRODUCTION_QA_AUDIT_2026-11-22.md) отозван как основанный на неверной предпосылке: возвращаться к Claude и переносить браузерную проверку из Nodul в Claude **не планируется**.
+- Подготовлен [план миграции ChatGPT Work](docs/CHATGPT_WORK_AGENT_MIGRATION_2026-11-22.md): универсальный event-протокол, транспорт START из GAS, восстановление/идемпотентность, обязательная проверка перед публикацией и сохранение Telegram Request/Response. Production не изменён.
+
 ## [QA architecture audit] — 2026-11-22 — Proposed
 
 - Изучены Nodul Stable Pilot JSON, рабочая инструкция Claude 2.1, `render_check.py`, ReportAgentManager и Handbook. Выпущен [аудит перехода Pilot → Production](docs/PILOT_TO_PRODUCTION_QA_AUDIT_2026-11-22.md).
