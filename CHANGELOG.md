@@ -10,6 +10,12 @@
 
 # CHANGELOG
 
+## [Request schema mismatch found] — 2026-11-23 — Test blocked at N01
+
+- После проверки существующей синтетической заявки a02 в Nodul Dev: узел 13 скачал 742 байта, узел 22 прочитал 742 байта, узел 3 вернул `REQUEST_SCHEMA_INVALID`.
+- В заявке указано `schema_version=2.0` (как в предложенном `WORK_EVENT_PROTOCOL_v0.1.md`), а валидатор N01 в Prod v245 требует `1.0`. Протокол v0.1 прямо помечен как Proposed, не действующий runtime-контракт; это зафиксировано как несогласованность предложенной и пилотной схем.
+- После этой ошибки не менялись код узла, Active/Deploy, и не создавались новые запросы, result/receipt или письма. Active остаётся выключен. См. [операционный протокол](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Work event contract] — 2026-11-22 — Proposed v0.1
 
 - Создана [спецификация универсального event-протокола ChatGPT Work](docs/WORK_EVENT_PROTOCOL_v0.1.md): GAS START marker → Nodul Outlook Relay → Gmail Work, затем Nodul QA REPAIR/VALIDATED и штатный Telegram Sender.
