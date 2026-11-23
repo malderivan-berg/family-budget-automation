@@ -112,3 +112,27 @@ deduplication=AVAILABLE_STATE_ONLY
 ```
 
 Это проверка доставки и приёма START в тестовом режиме. Финансовый отчёт, Telegram, Sheets и GAS в прогоне не задействованы. Новое событие создано однократно. Ранее зарегистрированный START_REJECTED относится к предыдущему run_id.
+
+## 23 ноября 2026 — чтение синтетической выгрузки после START
+
+Один манифест запустил проверку отчёта 999904 через опубликованный START Relay. Выгрузка подготовлена вручную по контракту Handbook 1.0, содержит одну синтетическую строку raw/display и пустой список получателей. В метаданных отдельной тестовой папки подтверждены shared=false и единственное разрешение владельца. Событийная задача читает выгрузку только для этого тестового номера и только из указанной в её инструкции папки. Для других номеров сохраняется проверка одного манифеста.
+
+Gmail вернул одно сообщение для run_id, ID `1a208d7b252c9da7`. Идентификаторы события и манифеста совпали. Запуск Work `c2f1b785-0aec-8328-8da6-c44f12889bea` завершился в 17:39:32 МСК. Контрольные значения rows_read и period_end отсутствовали в START-манифесте и инструкции задачи и совпали с содержимым выгрузки.
+
+```text
+START_ACCEPTED
+run_id=3a3ee49e-4fe9-4dc1-ab48-d49315f9230f
+report_id=999904
+manifest_file_id=1Qj29b3hR54kOAduSehvM838PYk1yqkWJ
+report_data_file_id=1SMuO5PHsnb5kzZcGQsltdZ6ig-X7MpvU
+report_data_filename=report_data_999904.json
+report_data_schema_version=1.0
+report_data_report_id=999904
+rows_read=1
+period_end=2026-11-22
+manifest_trashed=UNKNOWN
+report_data_trashed=UNKNOWN
+deduplication=AVAILABLE_STATE_ONLY
+```
+
+Проверка покрывает доступ к файлу и чтение структуры schema 1.0. Генерация HTML, проверка чисел в HTML, публикация и доставка в Telegram остаются отдельными этапами.
