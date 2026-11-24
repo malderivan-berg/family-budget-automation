@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [Work exact request ID] — 2026-11-24 — VALIDATED_ACCEPTED
+
+- Контрольное письмо с прежним `event_id` повторно запустило Work. Прямое чтение заявки по Drive ID устранило `REQUEST_NOT_FOUND`. Подтверждены SHA-256 и пять ширин.
+- Спецификация QA v2.0 требует `request_file_id` в результате для универсальной реализации. В тесте ID передан в инструкции Work. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Nodul QA continuous run] — 2026-11-24 — Nodul PASS, Work lookup rejected
 
 - Development v17 прошёл Drive → Nodul → Outlook → Gmail и записал одну квитанцию. Повтор v18 вернул `SKIP`, без второго результата, квитанции или письма. Outlook в Development v19 снова отключён фильтром.
