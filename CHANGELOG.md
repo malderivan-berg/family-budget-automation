@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [QA request ID transport] — 2026-11-24 — Nodul verified
+
+- Nodul Dev v21 записал подтверждённый `request_file_id` в результат. Совпадение с фактическим Drive ID проверено после чтения. Тестовая ветка Work читает это поле из результата, событийная проверка ожидает одного контрольного письма.
+
 ## [Work exact request ID] — 2026-11-24 — VALIDATED_ACCEPTED
 
 - Контрольное письмо с прежним `event_id` повторно запустило Work. Прямое чтение заявки по Drive ID устранило `REQUEST_NOT_FOUND`. Подтверждены SHA-256 и пять ширин.
