@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [Work QA failure events] — 2026-11-24 — REPAIR_ACCEPTED, EXCEPTION_ACCEPTED
+
+- Два отдельных события Outlook → Gmail запустили Work. Обе ветки подтвердили динамический `request_file_id`, SHA-256 и четыре ширины с переполнением. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Nodul QA failure branches] — 2026-11-24 — Development verified
 
 - Два синтетических прогона Nodul подтвердили `REPAIR` на первой попытке и `EXCEPTION` на четвёртой, диагностику переполнения и передачу `request_file_id`. Приём обоих событий в Work подготовлен в режиме чтения. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
