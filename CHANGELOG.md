@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [Work QA intake acceptance] — 2026-11-24 — VALIDATED_ACCEPTED
+
+- Work принял одно техническое Gmail-событие для отчёта 999906 и сверил файлы Drive, SHA-256 и пять ширин. Письмо отправлено через подключение технического Outlook. Узел отправки Nodul и запись квитанции отдельно не проверялись. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Browser Validator v2 acceptance] — 2026-11-23 — Development v14
 
 - В Nodul подтверждён отказ a02 без числового подтверждения. Для синтетического отчёта 999906 получен и повторно прочитан из Drive результат `VALIDATED`: `PASS_GEOMETRY` на пяти ширинах, замечаний 0. N06 подготовил сигнал.
