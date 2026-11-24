@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [Work QA request ID from result] — 2026-11-24 — VALIDATED_ACCEPTED
+
+- Событийный тест Work с одним письмом подтвердил чтение заявки по `request_file_id` из результата Nodul. Сверены SHA-256 кандидата и пять ширин. Подробности в [протоколе пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [QA request ID transport] — 2026-11-24 — Nodul verified
 
 - Nodul Dev v21 записал подтверждённый `request_file_id` в результат. Совпадение с фактическим Drive ID проверено после чтения. Тестовая ветка Work читает это поле из результата, событийная проверка ожидает одного контрольного письма.
