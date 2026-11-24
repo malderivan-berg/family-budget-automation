@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [Work START→BUILD QA-ready] — 2026-11-24 — START_BUILD_QA_READY
+
+- Задача №17: одно START-событие обработано отдельным Nodul START Relay v62 (7 с, 5 операций), Outlook доставил ровно одно техническое письмо в Gmail, событие автоматически запустило ChatGPT Work. Из проверенной приватной копии реальной выгрузки `report_data_10.json` (schema 2.0) Work без интерактивной сборки создал анализ, HTML-кандидат и QA-заявку v2.0 `READY_FOR_LAYOUT`; повторно скачал файлы по Drive ID и подтвердил SHA-256.
+- `check_numbers.py`: анализ — 3 проверки, HTML — 188, нарушений 0; повторная сверка скачанного HTML — 188, нарушений 0. Нет автоматического браузерного QA для этого кандидата, финального HTML, Telegram-запроса или доставки. START BUILD ограничен одним пилотным `run_id`; защита последовательных повторов основана на файлах Drive, атомарной блокировки и проверки параллельных запусков нет.
+- Событийная задача Work остаётся включённой, START Relay v62 активен; для отката Work существует приватный снимок исходной инструкции. Инструкция Work v0.1.0 — [PR №10](https://github.com/malderivan-berg/family-budget-automation/pull/10), без изменений production GAS/Sheets/Telegram.
+
+## [Work real-data HTML QA] — 2026-11-24 — VALIDATED / PASS_GEOMETRY
+
+- Задача №16: интерактивно создан HTML из архивной реальной выгрузки schema 2.0; анализ — 7 проверок, HTML — 192, нарушений 0. Независимый Nodul Development подтвердил пять ширин 320/375/390/430/768 px без переполнений, результат связан с заявкой и кандидатом; тестовый HTML совпал по SHA-256. Полная визуальная семантика не проверялась.
+- Временные привязки папки у N01 и узлов поиска/записи QA возвращены к базовым в Development v34; Active выключен, Prod не развёрнут, Outlook и Telegram не отправлялись. Подробности — [PR №9](https://github.com/malderivan-berg/family-budget-automation/pull/9). Следующий шаг — универсальный QA без ручной перенастройки папок.
+
 ## [Work QA VALIDATED end-to-end] — 2026-11-24 — VALIDATED_ACCEPTED
 
 - Nodul Development v22 отправил один синтетический сигнал через Outlook. Work получил его из Gmail, прочитал заявку по `request_file_id` из результата и подтвердил SHA-256 и пять ширин. Сверена квитанция. После прогона Outlook снова заблокирован в Development v23. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
