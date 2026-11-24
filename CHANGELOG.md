@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [Nodul QA continuous run] — 2026-11-24 — Nodul PASS, Work lookup rejected
+
+- Development v17 прошёл Drive → Nodul → Outlook → Gmail и записал одну квитанцию. Повтор v18 вернул `SKIP`, без второго результата, квитанции или письма. Outlook в Development v19 снова отключён фильтром.
+- Триггер Work сработал, результат `VALIDATED_REJECTED / REQUEST_NOT_FOUND`. Work переведён на точный ID заявки. Отдельная повторная верификация исправления не проводилась. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Work QA intake acceptance] — 2026-11-24 — VALIDATED_ACCEPTED
 
 - Work принял одно техническое Gmail-событие для отчёта 999906 и сверил файлы Drive, SHA-256 и пять ширин. Письмо отправлено через подключение технического Outlook. Узел отправки Nodul и запись квитанции отдельно не проверялись. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
