@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [Work QA VALIDATED end-to-end] — 2026-11-24 — VALIDATED_ACCEPTED
+
+- Nodul Development v22 отправил один синтетический сигнал через Outlook. Work получил его из Gmail, прочитал заявку по `request_file_id` из результата и подтвердил SHA-256 и пять ширин. Сверена квитанция. После прогона Outlook снова заблокирован в Development v23. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
+
 ## [Work QA failure events] — 2026-11-24 — REPAIR_ACCEPTED, EXCEPTION_ACCEPTED
 
 - Два отдельных события Outlook → Gmail запустили Work. Обе ветки подтвердили динамический `request_file_id`, SHA-256 и четыре ширины с переполнением. См. [протокол пилота](docs/NODUL_BROWSER_VALIDATOR_PILOT_v1.0.md).
