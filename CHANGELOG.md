@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [Work QA→Test Final] — 2026-11-25 — VALIDATED_PUBLISHED_TEST
+
+- Задача №19 завершена: BUILD v0.1.1 из изолированного START сохранил проверенный оригинальный `analysis_N.json`, HTML и `fba_build_evidence` с фактическими Drive ID/SHA-256, QA-заявку создал последней. `check_numbers.py`: анализ 3, HTML 188, нарушений 0. Это исправляет ранее обнаруженный `ANALYSIS_ARTIFACT_MISSING`.
+- Универсальный Nodul Development v42 независимо выдал `VALIDATED/PASS_GEOMETRY` для текущего кандидата: 5 ширин 320/375/390/430/768 px без переполнений. Разовый Run once первоначально обработал HTML и остановился входным фильтром; контрольный запуск по одной новой QA-заявке прошёл без повторного BUILD.
+- Первый тестовый `VALIDATED`-email через Outlook/Gmail вызвал Work, но завершился `no_update` из-за пересекающихся правил маршрутизации. После уточнения приоритета по `event/run_id` отдельно согласованный повторный email вызвал Work, который автоматически вернул `VALIDATED_PUBLISHED_TEST / FINAL_READBACK_VERIFIED`. Повторные 3 проверки оригинального анализа и 188 HTML дали 0 нарушений; ровно один финальный HTML создан в приватной тестовой папке и по повторному скачиванию побайтово совпал с QA-кандидатом.
+- **Граница:** Outlook-событие `VALIDATED` отправлено вручную; автоматический сигнал из Nodul, полный `REPAIR`, Telegram и GAS production ещё не проверены. Контракты QA v2.0, Sheets/Telegram и production не изменялись. Подробный протокол — [PR №12](https://github.com/malderivan-berg/family-budget-automation/pull/12).
+
+
 ## [Universal Browser Validator v2 QA] — 2026-11-24 — VALIDATED / PASS_GEOMETRY
 
 - Задача №18: Nodul Browser Validator v2 Development v42 использует постоянную приватную QA-папку, получает `report_id/run_id` из проверенной заявки и не требует ручной смены параметров под отчёт. Кандидат задачи №17 скопирован в QA с проверкой SHA-256; старые файлы не изменены.
