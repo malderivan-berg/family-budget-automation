@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [QA event automatic delivery] — 2026-11-25 — VALIDATED_PUBLISHED_TEST
+
+- Задача №20: Nodul Browser Validator Development v43 за 38 с и 18 операций создал один `VALIDATED/PASS_GEOMETRY` (320/375/390/430/768 px, 0 переполнений), проверил SHA-256 и `request_file_id`, автоматически отправил одно техническое письмо Outlook и записал связанную `fba_signal_receipt` после отправки. Gmail запустил Work, который повторно сверил исходный анализ (3 проверки) и HTML (188 проверок), нарушений 0, и создал один тестовый финал `VALIDATED_PUBLISHED_TEST/FINAL_READBACK_VERIFIED`, идентичный кандидату после повторного скачивания.
+- Контрольный повтор Dev v44 не создал новых результата, квитанции, письма или финала. При этом **оба входных пакета остановились после N02a, до N02**; механизм `SKIP` и путь `RESEND` этим тестом не доказаны, как и повторное получение почты самим Work. Причина остановки не установлена. N02 пока не сверяет фактический `request_file_id` и требует проверки до production.
+- Outlook вновь заблокирован `0 = 1`, Active выключен, Prod не развёрнут. Stable Pilot, GAS, Sheets, рабочая Reports и Telegram Sender не менялись. Доказательства — [PR №13](https://github.com/malderivan-berg/family-budget-automation/pull/13). Следующий этап — диагностика N02a, подтверждение `SKIP/RESEND`, затем `REPAIR` и Telegram.
+
+
 ## [Work QA→Test Final] — 2026-11-25 — VALIDATED_PUBLISHED_TEST
 
 - Задача №19 завершена: BUILD v0.1.1 из изолированного START сохранил проверенный оригинальный `analysis_N.json`, HTML и `fba_build_evidence` с фактическими Drive ID/SHA-256, QA-заявку создал последней. `check_numbers.py`: анализ 3, HTML 188, нарушений 0. Это исправляет ранее обнаруженный `ANALYSIS_ARTIFACT_MISSING`.
