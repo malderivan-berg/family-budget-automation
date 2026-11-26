@@ -13,14 +13,50 @@ function prepareFba22Run() {
     state.reportId = createNewReport_().id;
     SpreadsheetApp.flush();
     if (!Number.isSafeInteger(state.reportId) || state.reportId < 1) throw new Error('FBA22_INVALID_REPORT_ID');
-    const data = exportReportData_(state.reportId, DriveApp.getFolderById(config.runFolderId));
-    state.dataId = data.getId();
-    state.dataSha256 = fba22Sha256_(data.getBlob());
-    state.startId = Drive.Files.generateIds({ count: 1, space: 'drive' }).ids[0];
-    state.stage = 'PREPARED';
-    saveFba22State_(props, state);
-    return state;
+    return finishFba22Preparation_(props, config, state);
   });
+}
+
+function resumeFba22Preparation() {
+  return withFba22Lock_((props, config) => {
+    const state = readFba22State_(props);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SOURCE_SHEET_NAME);
+    const block = getLastReportBlock_(sheet);
+    // Единственный частично подготовленный запуск задачи №22.
+    if (state.stage !== 'PREPARING' || !/^[0-9a-f-]{36}$/i.test(state.runId) ||
+        block.reportId !== 11 || (state.reportId && state.reportId !== block.reportId)) {
+      throw new Error('FBA22_RECOVERY_STATE_MISMATCH');
+    }
+    state.reportId = block.reportId;
+    return finishFba22Preparation_(props, config, state);
+  });
+}
+
+function finishFba22Preparation_(props, config, state) {
+  SpreadsheetApp.flush();
+  const name = 'report_data_' + state.reportId + '.json';
+  if (fba22UniqueFile_(config.runFolderId, name)) {
+    throw new Error('FBA22_EXISTING_EXPORT_REQUIRES_REVIEW');
+  }
+  const data = buildReportData_(state.reportId);
+  if (data.schema !== 'report_data' || data.schema_version !== '2.0' ||
+      data.report_id !== state.reportId) {
+    throw new Error('FBA22_EXPORT_SCHEMA_MISMATCH');
+  }
+  const ids = Drive.Files.generateIds({ count: 1, space: 'drive' }).ids;
+  if (ids?.length !== 1 || !ids[0]) throw new Error('FBA22_DRIVE_RESERVATION_FAILED');
+  const blob = Utilities.newBlob(JSON.stringify(data, null, 1), 'application/json', name);
+  const file = DriveApp.getFolderById(config.runFolderId).createFile(blob);
+  const originalSha = fba22Sha256_(blob);
+  if (!fba22OnlyParent_(file, config.runFolderId) || fba22Sha256_(file.getBlob()) !== originalSha) {
+    throw new Error('FBA22_EXPORT_READBACK_MISMATCH');
+  }
+  state.dataId = file.getId();
+  state.dataSha256 = originalSha;
+  state.startId = ids[0];
+  state.stage = 'PREPARED';
+  saveFba22State_(props, state);
+  return state;
 }
 
 function startFba22Run() {
