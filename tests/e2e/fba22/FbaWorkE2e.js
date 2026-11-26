@@ -39,7 +39,7 @@ function finishFba22Preparation_(props, config, state) {
     throw new Error('FBA22_EXISTING_EXPORT_REQUIRES_REVIEW');
   }
   const data = buildReportData_(state.reportId);
-  if (data.schema !== 'report_data' || data.schema_version !== '2.0' ||
+  if (data.schema !== 'report_data' || data.schema_version !== '1.0' ||
       data.report_id !== state.reportId) {
     throw new Error('FBA22_EXPORT_SCHEMA_MISMATCH');
   }
