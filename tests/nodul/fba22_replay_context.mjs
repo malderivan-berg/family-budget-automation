@@ -85,10 +85,10 @@ function readMatchedFile(file, downloaded) {
 }
 
 export default function evaluateQaReplay(context, sha256) {
-  const { request, requestFileId, trustedFolderId, candidatePage, resultPage,
+  const { request, requestFileId, trustedFolderId, trustedRunId, candidatePage, resultPage,
     receiptPage, resultDownload, receiptDownload } = context;
   if (typeof trustedFolderId !== 'string' || !trustedFolderId ||
-      request?.qa_folder_id !== trustedFolderId ||
+      request?.qa_folder_id !== trustedFolderId || request.run_id !== trustedRunId ||
       !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(request.run_id ?? '') ||
       !Number.isInteger(request.attempt) || request.attempt < 1 || request.attempt > 4 ||
       !Number.isSafeInteger(request.report_id) || request.report_id !== 11 ||
