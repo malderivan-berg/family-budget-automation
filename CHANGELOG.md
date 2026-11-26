@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [FBA №22] — 2026-11-26 — аудит начат
+
+- Зафиксирован [аудит сквозного маршрута](docs/FBA_TASK_22_E2E.md): требования к изолированному START, динамическим Drive ID QA, отдельному Sender и сверке Telegram Response в GAS. Сквозной прогон ожидается.
+
 ## [QA reliability accepted in isolation] — 2026-11-26 — FBA_QA_RELIABILITY_ACCEPTED
 
 - Задача №21 закрыта по **изолированной приёмке**, не по production-внедрению. Nodul Drive read-only v7: `SKIP` с фактическими Drive ID; v8 26.11.2026 09:49:06 МСК: `RESEND` с исходным ID QA-result (result существует, receipt вне поисковой папки); 09:49:44: `VALIDATE` (результат и receipt вне поиска). Тестовые файлы возвращены с теми же ID. Узлы отправки, Puppeteer и записи результата отсутствовали. Доказательства — [PR №13](https://github.com/malderivan-berg/family-budget-automation/pull/13#issuecomment-7184835207).
