@@ -74,30 +74,41 @@ function fba22QaLookup_(request, now) {
     }
     nonces[request.nonce] = request.timestamp + windowMs;
     props.setProperty(nonceKey, JSON.stringify(nonces));
+
+    const folder = Drive.Files.get(folderId, { fields: 'id,mimeType,parents,trashed' });
+    if (folder?.id !== folderId || folder.trashed !== false ||
+        folder.mimeType !== 'application/vnd.google-apps.folder' ||
+        folder.parents?.length !== 1 || folder.parents[0] !== runConfig.testRootFolderId) {
+      throw new Error('INVALID_FOLDER');
+    }
+    const candidate = Drive.Files.get(request.candidateId, { fields: 'id,name,mimeType,parents,trashed' });
+    if (candidate?.id !== request.candidateId || candidate.trashed !== false ||
+        candidate.mimeType !== 'text/html' ||
+        candidate.parents?.length !== 1 || candidate.parents[0] !== folderId) {
+      throw new Error('INVALID_CANDIDATE');
+    }
+    const suffix = request.runId + '_a' + String(request.attempt).padStart(2, '0') + '.json';
+    const resultPage = fba22QaFind_(folderId, 'fba_layout_result_' + suffix);
+    const receiptPage = fba22QaFind_(folderId, 'fba_signal_sent_' + suffix);
+    if (receiptPage.files.length && !resultPage.files.length) {
+      throw new Error('RECEIPT_WITHOUT_RESULT');
+    }
+    if (!resultPage.files.length) {
+      const claimKey = 'FBA22_QA_LOOKUP_VALIDATION_' + request.attempt;
+      if (props.getProperty(claimKey) != null) throw new Error('VALIDATION_ALREADY_CLAIMED');
+      // При сбое до сохранения результата повтор требует разбора.
+      props.setProperty(claimKey, request.runId);
+    }
+    return {
+      ok: true, version: 1, reportId: 11, runId: request.runId, attempt: request.attempt,
+      nonce: request.nonce,
+      candidatePage: { files: [candidate] },
+      resultPage,
+      receiptPage
+    };
   } finally {
     lock.releaseLock();
   }
-
-  const folder = Drive.Files.get(folderId, { fields: 'id,mimeType,parents,trashed' });
-  if (folder?.id !== folderId || folder.trashed !== false ||
-      folder.mimeType !== 'application/vnd.google-apps.folder' ||
-      folder.parents?.length !== 1 || folder.parents[0] !== runConfig.testRootFolderId) {
-    throw new Error('INVALID_FOLDER');
-  }
-  const candidate = Drive.Files.get(request.candidateId, { fields: 'id,name,mimeType,parents,trashed' });
-  if (candidate?.id !== request.candidateId || candidate.trashed !== false ||
-      candidate.mimeType !== 'text/html' ||
-      candidate.parents?.length !== 1 || candidate.parents[0] !== folderId) {
-    throw new Error('INVALID_CANDIDATE');
-  }
-  const suffix = request.runId + '_a' + String(request.attempt).padStart(2, '0') + '.json';
-  return {
-    ok: true, version: 1, reportId: 11, runId: request.runId, attempt: request.attempt,
-    nonce: request.nonce,
-    candidatePage: { files: [candidate] },
-    resultPage: fba22QaFind_(folderId, 'fba_layout_result_' + suffix),
-    receiptPage: fba22QaFind_(folderId, 'fba_signal_sent_' + suffix)
-  };
 }
 
 function fba22QaFind_(folderId, name) {
