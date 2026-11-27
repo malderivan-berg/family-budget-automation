@@ -120,3 +120,49 @@ export default function evaluateQaReplay(context, sha256) {
     eventId
   });
 }
+
+/**
+ * Читает все страницы точного поиска в доверенной тестовой папке.
+ * getDriveJson получает URL и возвращает исходный JSON успешного Drive API GET.
+ * OAuth и проверка HTTP-статуса остаются в транспортном слое.
+ */
+export async function listFba22DriveMatches({ folderId, name, getDriveJson }) {
+  if (typeof folderId !== 'string' || !/^[A-Za-z0-9_-]+$/.test(folderId) ||
+      typeof name !== 'string' || !name.trim() || typeof getDriveJson !== 'function') {
+    throw new Error('QA_LOOKUP_INPUT_INVALID');
+  }
+  const escapedName = name.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+  const url = new URL('https://www.googleapis.com/drive/v3/files');
+  url.searchParams.set('q', `'${folderId}' in parents and name = '${escapedName}' and trashed = false`);
+  url.searchParams.set('corpora', 'user');
+  url.searchParams.set('spaces', 'drive');
+  url.searchParams.set('fields', 'kind,nextPageToken,incompleteSearch,files(id,name,parents,mimeType,trashed)');
+
+  const files = [];
+  const seenTokens = new Set();
+  // Для точного имени в изолированной папке больше десяти страниц — аномалия.
+  for (let pageNumber = 1; pageNumber <= 10; pageNumber++) {
+    const page = await getDriveJson(url.href);
+    if (page?.kind !== 'drive#fileList' || !Array.isArray(page.files) ||
+        (page.incompleteSearch !== undefined && page.incompleteSearch !== false)) {
+      throw new Error('QA_LOOKUP_INCOMPLETE');
+    }
+    for (const file of page.files) {
+      if (file?.name !== name || file.trashed !== false ||
+          !Array.isArray(file.parents) || file.parents.length !== 1 || file.parents[0] !== folderId ||
+          typeof file.id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(file.id)) {
+        throw new Error('QA_LOOKUP_METADATA_MISMATCH');
+      }
+      files.push(file);
+      if (files.length > 1) throw new Error('QA_LOOKUP_AMBIGUOUS');
+    }
+    const token = page.nextPageToken;
+    if (token === undefined) return { files };
+    if (typeof token !== 'string' || !token.trim() || seenTokens.has(token)) {
+      throw new Error('QA_LOOKUP_INCOMPLETE');
+    }
+    seenTokens.add(token);
+    url.searchParams.set('pageToken', token);
+  }
+  throw new Error('QA_LOOKUP_INCOMPLETE');
+}
