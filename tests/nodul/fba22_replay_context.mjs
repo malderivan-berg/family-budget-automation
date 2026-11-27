@@ -60,7 +60,8 @@ function replayGate({
 }
 
 function exactEntry(page, name, folderId, mimeTypes) {
-  if (!page || !Array.isArray(page.files) || page.nextPageToken) {
+  if (!page || !Array.isArray(page.files) || page.nextPageToken ||
+      (page.incompleteSearch !== undefined && page.incompleteSearch !== false)) {
     throw new Error('QA_LOOKUP_INCOMPLETE');
   }
   const matches = page.files.filter(file => file?.name === name);
