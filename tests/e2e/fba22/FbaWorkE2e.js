@@ -91,6 +91,48 @@ function startFba22Run() {
   });
 }
 
+// One controlled continuation of the isolated report 11 after QA A01.
+function resumeFba22DeliveryAfterQaA01() {
+  return withFba22Lock_((props, config) => {
+    const state = readFba22State_(props);
+    if (state.reportId !== 11 || !state.startId || !state.runId ||
+        !Number.isFinite(state.startedAt) || state.continuedQaAt ||
+        state.requestId || state.requestAt ||
+        !['WAITING_REPORT', 'REPORT_TIMEOUT'].includes(state.stage)) {
+      throw new Error('FBA22_CONTINUATION_STATE_INVALID');
+    }
+
+    const start = fba22UniqueFile_(config.startFolderId, 'fba_work_start_' + state.runId + '.json');
+    const evidence = fba22UniqueFile_(config.runFolderId, 'fba_build_evidence_' + state.runId + '_a02.json');
+    if (!start || start.getId() !== state.startId || !evidence || evidence.getMimeType() !== 'application/json') {
+      throw new Error('FBA22_CONTINUATION_ARTIFACT_MISSING');
+    }
+    const record = JSON.parse(evidence.getBlob().getDataAsString('UTF-8'));
+    if (record.schema !== 'fba_build_evidence' || record.schema_version !== '1.0' ||
+        record.attempt !== 2 || record.report_id !== 11 || record.run_id !== state.runId ||
+        record.report_data_file_id !== state.dataId || record.report_data_sha256 !== state.dataSha256 ||
+        record.continuation?.mode !== 'qa_only' || record.continuation.source_attempt !== 1 ||
+        fba22UniqueFile_(config.finalFolderId, 'report_11.html') ||
+        fba22UniqueFile_(config.outboxFolderId, 'telegram_request_11.json') ||
+        fba22UniqueFile_(config.inboxFolderId, 'telegram_response_11.json') ||
+        ScriptApp.getProjectTriggers().some(trigger => trigger.getHandlerFunction() === FBA22_CHECK)) {
+      throw new Error('FBA22_CONTINUATION_PREFLIGHT_FAILED');
+    }
+
+    const trigger = ScriptApp.newTrigger(FBA22_CHECK).timeBased().everyMinutes(1).create();
+    try {
+      state.continuationPreviousStage = state.stage;
+      state.continuedQaAt = Date.now();
+      state.stage = 'WAITING_REPORT';
+      saveFba22State_(props, state);
+    } catch (error) {
+      ScriptApp.deleteTrigger(trigger);
+      throw error;
+    }
+    return state.stage;
+  });
+}
+
 function checkFba22Delivery() {
   return withFba22Lock_((props, config) => {
     const state = readFba22State_(props);
@@ -132,7 +174,7 @@ function checkFba22Delivery() {
         } else if (state.stage === 'WAITING_DELIVERY') {
           throw new Error('FBA22_REQUEST_MISSING');
         }
-        if (state.stage === 'WAITING_REPORT' && now - state.startedAt >= config.reportMinutes * 60000) {
+        if (state.stage === 'WAITING_REPORT' && now - (state.continuedQaAt || state.startedAt) >= config.reportMinutes * 60000) {
           state.stage = 'REPORT_TIMEOUT';
         }
         if (state.stage === 'WAITING_DELIVERY' && now - state.requestAt >= config.deliveryMinutes * 60000) {
